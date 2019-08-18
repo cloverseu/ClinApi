@@ -9,8 +9,8 @@ class UserResource(Resource):
 
     def __init__(self):
         self.parser = reqparse.RequestParser()
-        self.parser.add_argument('user_id', type=int)
-        self.parser.add_argument('password', type=str)
+        self.parser.add_argument('userID', type=int)
+
 
 
     #查询
@@ -24,23 +24,23 @@ class UserResource(Resource):
         json_data = request.get_json(force=True)
         if not json_data:
             return {'message': 'No input data provided'}, 400
-        data, errors = UserSchema().load(json_data)
+        data, errors = UserSchema().load(json_data, session=session)
         if errors:
             return errors,422
-        user = User.query.filter_by(username=json_data['username']).first()
+        user = User.query.filter_by(userName=json_data['userName']).first()
         if user:
             return {'message': 'user already exists'}, 400
 
         #变量如果没有会怎样
         user = User(
-            username = json_data['username'],
-            password = json_data['password'],
-            email = json_data['email'],
-            date_create = datetime.datetime.now(),
-            is_admin = json_data['is_admin'],
-            can_createTrail = json_data['can_createTrail'],
-            can_createSop = json_data['can_createSop'],
-            is_active= json_data['is_active']
+            userName = json_data['userName']
+            # password = json_data['password'],
+            # email = json_data['email'],
+            # date_create = datetime.datetime.now(),
+            # is_admin = json_data['is_admin'],
+            # can_createTrail = json_data['can_createTrail'],
+            # can_createSop = json_data['can_createSop'],
+            # is_active= json_data['is_active']
         )
         session.add(user)
         session.commit()
@@ -50,9 +50,9 @@ class UserResource(Resource):
     #更新
     def put(self):
         data = self.parser.parse_args()
-        data_user_id = data.get('user_id')
-        update_user = session.query(User).filter_by(user_id=data_user_id).first()
-        update_user.password =  data.get('password')
+        data_user_id = data.get('userID')
+        update_user = session.query(User).filter_by(userID=data_user_id).first()
+        # update_user.password =  data.get('password')
         session.commit()
 
         return {'message': 'success'}
@@ -60,8 +60,8 @@ class UserResource(Resource):
     #删除
     def delete(self):
         data = self.parser.parse_args()
-        data_user_id = data.get('user_id')
-        del_by_id = session.query(User).filter_by(user_id = data_user_id).first()
+        data_user_id = data.get('userID')
+        del_by_id = session.query(User).filter_by(userID = data_user_id).first()
         session.delete(del_by_id)
         session.commit()
 
