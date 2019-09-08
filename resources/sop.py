@@ -3,6 +3,7 @@ from flask_restful import Resource, reqparse
 from  model.sopModel import sopFile, sopFileSchema
 from  model.db import db, session
 from werkzeug.datastructures import FileStorage
+from common.util import auth_token
 from werkzeug.utils import secure_filename
 import datetime
 import os
@@ -20,13 +21,15 @@ class sopFileResource(Resource):
 
 
     #查询
-    def get(self):
+    @auth_token
+    def get(self, headers):
         sopInfo = sopFile.query.all()
         result = sopFileSchema().dump(sopInfo, many=True).data
         return {'message':'success', 'data':result}
 
     #增加
-    def post(self):
+    @auth_token
+    def post(self, headers):
         data = self.parser.parse_args()
         print(data)
         # json_data = request.get_json(force=True)
@@ -62,7 +65,8 @@ class sopFileResource(Resource):
         return {'message':'success','filename':file.name}
 
     #更新
-    def put(self):
+    @auth_token
+    def put(self, headers):
         data = self.parser.parse_args()
         data_user_id = data.get('user_id')
         update_user = session.query(User).filter_by(user_id=data_user_id).first()
@@ -72,7 +76,8 @@ class sopFileResource(Resource):
         return {'message': 'success'}
 
     #删除
-    def delete(self):
+    @auth_token
+    def delete(self, headers):
         data = self.parser.parse_args()
         data_user_id = data.get('user_id')
         del_by_id = session.query(User).filter_by(user_id = data_user_id).first()

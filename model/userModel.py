@@ -7,12 +7,15 @@ class User(db.Model):
 
     __tablename__ = "user"
     userID = db.Column(db.Integer, primary_key=True, autoincrement = True, unique=True)
-    userName = db.Column(db.String(255))
+    username = db.Column(db.String(255))
+    userRealName = db.Column(db.String(255))
+    password = db.Column(db.String(255))
 
 
-
-    def __init__(self, userName):
-        self.userName = userName
+    def __init__(self, username, userRealName, password):
+        self.username = username
+        self.userRealName = userRealName
+        self.password = password
 
 
     def __repr__(self):

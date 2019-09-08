@@ -3,28 +3,41 @@ from flask_restful import Resource, reqparse
 from  model.trialModel import Trial, TrialSchema
 from  model.db import db, session
 import datetime
+from  common.queryByItem import QueryConductor
+from common.util import auth_token
 
 
 
 class TrialResource(Resource):
 
     def __init__(self):
-        parser = reqparse.RequestParser()
-        parser.add_argument('trialID', type=int)
-        parser.add_argument('trialCreatorID', type=int)
+        self.parser = reqparse.RequestParser()
+        self.parser.add_argument('trialID', type=int)
+        self.parser.add_argument('trialCreatorID', type=int)
 
         # parser.add_argument('file', type=FileStorage, location="files")
         # parser.add_argument('sop_name', type=str)
         # parser.add_argument('sop_description', type=str)
 
     #查询
-    def get(self):
-        studyInfo = Trial.query.all()
+    @auth_token
+    def get(self, headers):
+        data = self.parser.parse_args()
+        # data_trial_id = data.get('trialID')
+        # data_user_id = data.get('trialCreatorID')
+        # if (data_trial_id or data_user_id):
+        #     studyInfo = Trial.query.filter_by(trialCreatorID=str(data_user_id))
+        # else:
+        #     studyInfo = Trial.query.all()
+        studyInfo = QueryConductor(data).queryProcess()
+        if not studyInfo:
+            studyInfo = Trial.query.all()
         result = TrialSchema().dump(studyInfo, many=True).data
         return {'message':'success', 'trialInfo':result}
 
     #增加(这部分是否可以重复利用)
-    def post(self):
+    @auth_token
+    def post(self, headers):
         json_data = request.get_json(force=True)
         if not json_data:
             return {'message': 'No input data provided'}, 400
@@ -60,7 +73,8 @@ class TrialResource(Resource):
         return {'message': 'success','trialID': trial.trialID}
 
     #更新
-    def put(self):
+    @auth_token
+    def put(self, headers):
         data = parser.parse_args()
         data_trial_id = data.get('trialID')
         update_trial = session.query(Trial).filter_by(trialID=data_trial_id).first()
@@ -70,7 +84,8 @@ class TrialResource(Resource):
         return {'message': 'success'}
 
     #删除
-    def delete(self):
+    @auth_token
+    def delete(self, headers):
         data = parser.parse_args()
         data_trial_id = data.get('trialID')
         del_by_id = session.query(Trial).filter_by( trialID = data_trial_id).first()

@@ -1,6 +1,7 @@
 from flask import request
 from flask_restful import Resource, reqparse
 from  model.studyModel import Study, StudySchema
+from common.util import auth_token
 from  model.db import db, session
 import datetime
 
@@ -17,13 +18,15 @@ class StudyResource(Resource):
         # self.parser.add_argument('sop_description', type=str)
 
     #查询
-    def get(self):
+    @auth_token
+    def get(self, headers):
         studyInfo = Study.query.all()
         result = StudySchema().dump(studyInfo, many=True).data
         return {'message':'success', 'data':result}
 
     #增加
-    def post(self):
+    @auth_token
+    def post(self, headers):
         json_data = request.get_json(force=True)
         if not json_data:
             return {'message': 'No input data provided'}, 400

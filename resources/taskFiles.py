@@ -5,6 +5,8 @@ from  model.userModel import User, UserSchema
 from  model.db import db, session
 from werkzeug.datastructures import FileStorage
 from werkzeug.utils import secure_filename
+from  common.queryByItem import QueryConductor
+from common.util import auth_token
 import datetime
 import os
 import re
@@ -14,20 +16,35 @@ class taskFilesResource(Resource):
 
     def __init__(self):
         self.parser = reqparse.RequestParser()
-        self.parser.add_argument('file', type=FileStorage, location="files")
+        # self.parser.add_argument('file', type=FileStorage, location="files")
         self.parser.add_argument('belongedToTaskID', type=int)
         self.parser.add_argument('fileName', type=str)
+        self.parser.add_argument('fileID', type=int)
         self.parser.add_argument('createDate', type=str)
         self.parser.add_argument('creatorID', type=int)
         self.parser.add_argument('description', type=str)
         self.parser.add_argument('deleteDate', type=str)
         self.parser.add_argument('deleteExecutorID', type=int)
+        self.parser.add_argument('file', type=FileStorage, location="files")
 
 
 
     #查询
-    def get(self):
-        taskFilesInfo = taskFiles.query.all()
+    @auth_token
+    def get(self, headers):
+        data = self.parser.parse_args()
+        # data_trial_id = data.get('fileID')
+        # data_user_id = data.get('creatorID')
+        # print(data_user_id)
+        # if (data_trial_id or data_user_id):
+        #     taskFilesInfo = taskFiles.query.filter_by(creatorID=data_user_id)
+        #     print(taskFilesInfo)
+        # else:
+        #     taskFilesInfo = taskFiles.query.all()
+        # taskFilesInfo = taskFiles.query.all()
+        taskFilesInfo = QueryConductor(data).queryProcess()
+        if not taskFilesInfo:
+            taskFilesInfo = taskFiles.query.all()
         result = taskFileSchema().dump(taskFilesInfo , many=True).data
         for r in result:
             print(r["fileID"])
@@ -37,7 +54,8 @@ class taskFilesResource(Resource):
         return {'message':'success', 'taskFilesInfo':result}
 
     #增加
-    def post(self):
+    @auth_token
+    def post(self, headers):
         data = self.parser.parse_args()
         print(data)
         # json_data = request.get_json(force=True)
@@ -54,7 +72,7 @@ class taskFilesResource(Resource):
         file = data.get('file')
         if not file:
             return {'message': 'No input  file provided'}, 400
-        file_name = taskFiles.query.filter_by(filename=json_data['filename']).first()
+        file_name = taskFiles.query.filter_by(fileName=data.get('fileName')).first()
 
 
 
@@ -84,7 +102,8 @@ class taskFilesResource(Resource):
         return {'message':'success','taskID':taskFile.fileID}
 
     #更新
-    def put(self):
+    @auth_token
+    def put(self, headers):
         data = self.parser.parse_args()
         data_taskFile_id = data.get('taskFile_id')
         update_taskFile = session.query(taskFiles).filter_by(fileID=data_taskFile_id).first()
@@ -94,7 +113,8 @@ class taskFilesResource(Resource):
         return {'message': 'success'}
 
     #删除
-    def delete(self):
+    @auth_token
+    def delete(self, headers):
         data = self.parser.parse_args()
         data_taskFile_id = data.get('fileID')
         del_by_id = session.query(taskFiles).filter_by(fileID = data_taskFile_id).first()

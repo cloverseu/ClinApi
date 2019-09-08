@@ -4,6 +4,8 @@ from  model.tasksModel import Tasks, TaskSchema
 from  model.userModel import User, UserSchema
 from  model.trialModel import Trial, TrialSchema
 from  model.db import db, session
+from  common.queryByItem import QueryConductor
+from common.util import auth_token
 import datetime
 
 
@@ -11,17 +13,38 @@ import datetime
 class TasksResource(Resource):
 
     def __init__(self):
-        parser = reqparse.RequestParser()
-        parser.add_argument('taskID', type=int)
-        parser.add_argument('taskCreatorID', type=int)
-
+        self.parser = reqparse.RequestParser()
+        self.parser.add_argument('taskID', type=int)
+        self.parser.add_argument('taskCreatorID', type=int)
+        self.parser.add_argument('taskExecutorID', type=int)
         # parser.add_argument('file', type=FileStorage, location="files")
         # parser.add_argument('sop_name', type=str)
         # parser.add_argument('sop_description', type=str)
 
     #查询
-    def get(self):
-        tasksInfo = Tasks.query.all()
+    @auth_token
+    def get(self, headers):
+        # print(dir(Tasks))
+        data = self.parser.parse_args()
+        # data_trial_id = data.get('taskID')
+        # print(data.keys())
+        # print(list(data.keys())[1])
+        # print('taskIDs' in data.keys())
+        # data_user_id = data.get('taskCreatorID')
+        # item = list(data.keys())
+        # for i in item:
+        #     if(data.get(i)):
+        #         item = i
+        # filters = {item:data.get(item)}
+        # print(filters)
+        # tasksInfo = Tasks.query.filter_by(**filters)
+        # if (data_trial_id or data_user_id):
+        #     tasksInfo = Tasks.query.filter_by(taskCreatorID=data_trial_id)
+        # else:
+        #     tasksInfo = Tasks.query.all()
+        tasksInfo = QueryConductor(data).queryProcess()
+        if not tasksInfo:
+            tasksInfo = Tasks.query.all()
         result = TaskSchema().dump(tasksInfo, many=True).data
         for r in result:
             r["belongedToTrialName"] = session.query(Trial).filter_by(trialID=r['belongedToTrialID']).first().trialName
@@ -30,7 +53,8 @@ class TasksResource(Resource):
         return {'message':'success', 'tasksInfo':result}
 
     #增加(这部分是否可以重复利用)
-    def post(self):
+    @auth_token
+    def post(self, headers):
         json_data = request.get_json(force=True)
         if not json_data:
             return {'message': 'No input data provided'}, 400
@@ -66,17 +90,22 @@ class TasksResource(Resource):
         return {'message': 'success','taskID': task.taskID}
 
     #更新
-    def put(self):
+    @auth_token
+    def put(self, headers):
         data = parser.parse_args()
         data_task_id = data.get('taskID')
-        update_task = session.query(Tasks).filter_by(taskID=data_task_id).first()
+
+        update_task = session.query(Tasks).filter_by(taskID=data_task_id).update()
+
+        Student.query.filter_by(s_id=3).update({'s_name': '娃哈哈'})
         update_task.taskSponsor =  data.get('taskSponsor')
         session.commit()
 
         return {'message': 'success'}
 
     #删除
-    def delete(self):
+    @auth_token
+    def delete(self, headers):
         data = parser.parse_args()
         data_task_id = data.get('taskID')
         del_by_id = session.query(Tasks).filter_by( taskID = data_task_id).first()

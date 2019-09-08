@@ -7,6 +7,7 @@ from resources.study import StudyResource
 from resources.trial import TrialResource
 from resources.tasks import TasksResource
 from resources.taskFiles import taskFilesResource
+from resources.login import LoginResource
 
 api_bp = Blueprint('api', __name__)
 api = Api(api_bp)
@@ -17,4 +18,6 @@ api.add_resource(UserResource, '/User')
 api.add_resource(TrialResource, '/trialInfo')
 api.add_resource(TasksResource, '/tasksInfo')
 api.add_resource(taskFilesResource, '/taskFiles')
+api.add_resource(LoginResource, '/login')
+
 
