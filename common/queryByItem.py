@@ -59,10 +59,16 @@ class QueryConductor(object):
         #     return None
         #
 
-    def queryInterval(self):
+    def queryInterval(self, item, start=None, end=None):
         '''
                用于区间的查询
         '''
+        # all_model = [Trial, User, taskFiles, Tasks]
+        # for i in all_model:
+        #     if item in dir(i):
+        #          i[item] = item
+        # filters = {}
+        # filters
         # if(self.start)
         # # filters = {
         # #     User.name == ‘fengyao’,

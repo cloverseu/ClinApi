@@ -26,6 +26,7 @@ class UserResource(Resource):
     #增加
     @auth_token
     def post(self, headers):
+        print(headers['userID'])
         json_data = request.get_json(force=True)
         if not json_data:
             return {'message': 'No input data provided'}, 400
@@ -38,8 +39,9 @@ class UserResource(Resource):
 
         #变量如果没有会怎样
         user = User(
-            username = json_data['username']
-            # password = json_data['password'],
+            username = json_data['username'],
+            userRealName = json_data['userRealName'],
+            password = json_data['password'],
             # email = json_data['email'],
             # date_create = datetime.datetime.now(),
             # is_admin = json_data['is_admin'],
@@ -55,12 +57,15 @@ class UserResource(Resource):
     #更新
     @auth_token
     def put(self, headers):
-        data = self.parser.parse_args()
-        data_user_id = data.get('userID')
-        update_user = session.query(User).filter_by(userID=data_user_id).first()
-        # update_user.password =  data.get('password')
-        session.commit()
+        json_data = request.get_json(force=True)
+        data_user_id = json_data['userID']
+        update_user = session.query(User).filter_by(userID=data_user_id)
+        update_user.update(json_data)
+        #更新方法，变量json_data中的所有数据
+        # for k in json_data:
+        #     update_user.update({k:json_data[k]})
 
+        session.commit()
         return {'message': 'success'}
 
     #删除

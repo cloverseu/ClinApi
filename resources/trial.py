@@ -75,10 +75,12 @@ class TrialResource(Resource):
     #更新
     @auth_token
     def put(self, headers):
-        data = parser.parse_args()
-        data_trial_id = data.get('trialID')
-        update_trial = session.query(Trial).filter_by(trialID=data_trial_id).first()
-        update_trial.trialSponsor =  data.get('trialSponsor')
+        json_data = request.get_json(force=True)
+        data_trial_id = json_data['trialID']
+        update_trial = session.query(Trial).filter_by(trialID=data_trial_id)
+
+        # update_trial.trialSponsor =  data.get('trialSponsor')
+        update_trial.update(json_data)
         session.commit()
 
         return {'message': 'success'}
@@ -86,7 +88,7 @@ class TrialResource(Resource):
     #删除
     @auth_token
     def delete(self, headers):
-        data = parser.parse_args()
+        data = self.parser.parse_args()
         data_trial_id = data.get('trialID')
         del_by_id = session.query(Trial).filter_by( trialID = data_trial_id).first()
         session.delete(del_by_id)

@@ -92,13 +92,12 @@ class TasksResource(Resource):
     #更新
     @auth_token
     def put(self, headers):
-        data = parser.parse_args()
-        data_task_id = data.get('taskID')
+        json_data = request.get_json(force=True)
+        data_task_id = json_data['taskID']
 
         update_task = session.query(Tasks).filter_by(taskID=data_task_id).update()
+        update_task.update(json_data)
 
-        Student.query.filter_by(s_id=3).update({'s_name': '娃哈哈'})
-        update_task.taskSponsor =  data.get('taskSponsor')
         session.commit()
 
         return {'message': 'success'}

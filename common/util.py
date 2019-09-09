@@ -9,6 +9,7 @@ def auth_token(func):
             headers = jwt.decode(header["Authorization"], 'secret', algorithms=['HS256'])
             res = func(*args, **kwargs, headers=headers)
             return res
+        # 之后的有错误这边仍然会有报错
         except:
             return {"statusCode": "0",
                     "error": {

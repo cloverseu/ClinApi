@@ -64,7 +64,7 @@ class LoginResource(Resource):
 
             #添加token(密码加密后返回?)
             #secret可以写入配置文件中
-            token = jwt.encode({'userID': user.userID, 'exp':int(time.time())+120}, 'secret', algorithm='HS256')
+            token = jwt.encode({'userID': user.userID, 'exp':int(time.time())+1200}, 'secret', algorithm='HS256')
             return {
                  "statusCode": "1",
                  "userInfo": {'username':user.username, 'userRealName':user.userRealName},

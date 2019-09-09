@@ -57,23 +57,23 @@ class StudyResource(Resource):
         return {'message': 'success','filename': study.study_id}
 
     #更新
-    # def put(self):
-    #     data = self.parser.parse_args()
-    #     data_user_id = data.get('user_id')
-    #     update_user = session.query(User).filter_by(user_id=data_user_id).first()
-    #     update_user.password =  data.get('password')
-    #     session.commit()
-    #
-    #     return {'message': 'success'}
+    def put(self):
+        json_data = request.get_json(force=True)
+        data_user_id = json_data['studyID']
+        update_user = session.query(Study).filter_by(studyID=data_user_id)
+        update_user.update(json_data)
+        session.commit()
+
+        return {'message': 'success'}
     #
     # #删除
-    # def delete(self):
-    #     data = self.parser.parse_args()
-    #     data_user_id = data.get('user_id')
-    #     del_by_id = session.query(User).filter_by(user_id = data_user_id).first()
-    #     session.delete(del_by_id)
-    #     session.commit()
-    #
-    #     return { 'message':'success'}
+    def delete(self):
+        json_data = request.get_json(force=True)
+        data_user_id = json_data['studyID']
+        del_by_id = session.query(Study).filter_by(studyID=data_user_id)
+        session.delete(del_by_id)
+        session.commit()
+
+        return { 'message':'success'}
 
 
