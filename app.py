@@ -4,7 +4,7 @@ from flask_restful import Api
 from resources.user import UserResource
 from resources.sop import sopFileResource
 from resources.study import StudyResource
-from resources.trial import TrialResource
+from resources.project import   ProjectResource
 from resources.tasks import TasksResource
 from resources.taskFiles import taskFilesResource
 from resources.login import LoginResource
@@ -15,7 +15,7 @@ api = Api(api_bp)
 api.add_resource(sopFileResource, '/sopFile')
 api.add_resource(StudyResource, '/Study')
 api.add_resource(UserResource, '/User')
-api.add_resource(TrialResource, '/trialInfo')
+api.add_resource(ProjectResource, '/projectInfo')
 api.add_resource(TasksResource, '/tasksInfo')
 api.add_resource(taskFilesResource, '/taskFiles')
 api.add_resource(LoginResource, '/login')

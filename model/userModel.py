@@ -10,16 +10,23 @@ class User(db.Model):
     username = db.Column(db.String(255))
     userRealName = db.Column(db.String(255))
     password = db.Column(db.String(255))
+    userEmail = db.Column(db.String(255))
+    isAdmin = db.Column(db.Boolean)
+    userAccountStatus = db.Column(db.Boolean)
+    userLastLoginTime = db.Column(db.DateTime)
 
-
-    def __init__(self, username, userRealName, password):
+    def __init__(self, username, userRealName, password, userEmail, isAdmin, userAccountStatus, userLastLoginTime):
         self.username = username
         self.userRealName = userRealName
         self.password = password
+        self.userEmail = userEmail
+        self.isAdmin = isAdmin
+        self.userAccountStatus =  userAccountStatus
+        self.userLastLoginTime = userLastLoginTime
 
 
     def __repr__(self):
-        return '<Sop %r>' % self.userID
+        return '<User %r>' % self.userID
 
 class UserSchema(ModelSchema):
         class Meta:

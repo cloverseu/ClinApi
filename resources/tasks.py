@@ -2,7 +2,7 @@ from flask import request
 from flask_restful import Resource, reqparse
 from  model.tasksModel import Tasks, TaskSchema
 from  model.userModel import User, UserSchema
-from  model.trialModel import Trial, TrialSchema
+from  model.projectModel import Project, ProjectSchema
 from  model.db import db, session
 from  common.queryByItem import QueryConductor
 from common.util import auth_token

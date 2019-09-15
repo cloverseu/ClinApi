@@ -61,10 +61,12 @@ class LoginResource(Resource):
                             }
                         }, 403
 
-
+            #更新登录时间
+            user.userLastLoginTime =  time.ctime(time.time())
+            session.commit()
             #添加token(密码加密后返回?)
-            #secret可以写入配置文件中
-            token = jwt.encode({'userID': user.userID, 'exp':int(time.time())+1200}, 'secret', algorithm='HS256')
+            #secret可以写入配置文件中, 'exp':int(time.time())+8000
+            token = jwt.encode({'userID': user.userID}, 'secret', algorithm='HS256')
             return {
                  "statusCode": "1",
                  "userInfo": {'username':user.username, 'userRealName':user.userRealName},

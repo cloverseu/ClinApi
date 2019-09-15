@@ -1,7 +1,9 @@
 from flask import request
 from flask_restful import Resource, reqparse
 from  model.userModel import User, UserSchema
+from model.user_projectModel import userProject,userProjectSchema
 from  model.db import db, session
+from  common.queryByItem import QueryConductor
 import datetime
 from common.util import auth_token
 
@@ -19,17 +21,34 @@ class UserResource(Resource):
     #查询
     @auth_token
     def get(self, headers):
-        userInfo = User.query.all()
+        # userInfo = User.query.all()
+        # userResult = UserSchema().dump(userInfo, many=True).data
+        # userProjectResult = userProject
+        # return {'message':'success', 'data':result}
+        data = self.parser.parse_args()
+        userInfo = QueryConductor(data).queryProcess()
+        if not userInfo:
+            userInfo = User.query.all()
         result = UserSchema().dump(userInfo, many=True).data
-        return {'message':'success', 'data':result}
+        userID = None
+        for i, k in enumerate(result):
+            userID = k["userID"]
+
+        print(userID)
+        user_projectInfo = userProject.query.filter_by(userID=userID).all()
+        result_user_project = userProjectSchema().dump(user_projectInfo, many=True).data
+        print(result_user_project)
+        return {"statusCode": "1", 'users': result, "project":result_user_project}
 
     #增加
     @auth_token
     def post(self, headers):
         print(headers['userID'])
+        #需要判断该用户是否有增加新用户的权限
         json_data = request.get_json(force=True)
         if not json_data:
             return {'message': 'No input data provided'}, 400
+        print(json_data)
         data, errors = UserSchema().load(json_data, session=session)
         if errors:
             return errors,422
@@ -42,6 +61,11 @@ class UserResource(Resource):
             username = json_data['username'],
             userRealName = json_data['userRealName'],
             password = json_data['password'],
+            userEmail = json_data['userEmail'],
+            isAdmin = json_data['isAdmin'],
+            userAccountStatus = json_data['userAccountStatus'],
+            userLastLoginTime = None
+            # userLastLoginTime = json_data['userLastLoginTime']
             # email = json_data['email'],
             # date_create = datetime.datetime.now(),
             # is_admin = json_data['is_admin'],
@@ -52,7 +76,7 @@ class UserResource(Resource):
         session.add(user)
         session.commit()
 
-        return {'message':'success'}
+        return {"statusCode": "1"}
 
     #更新
     @auth_token
@@ -66,7 +90,7 @@ class UserResource(Resource):
         #     update_user.update({k:json_data[k]})
 
         session.commit()
-        return {'message': 'success'}
+        return {"statusCode": "1"}
 
     #删除
     @auth_token
@@ -77,4 +101,4 @@ class UserResource(Resource):
         session.delete(del_by_id)
         session.commit()
 
-        return { 'message':'success'}
+        return { "statusCode": "1"}

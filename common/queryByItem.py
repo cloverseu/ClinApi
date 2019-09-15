@@ -1,4 +1,4 @@
-from model.trialModel import Trial
+from model.projectModel import Project
 from model.userModel import User
 from model.taskFilesModel import taskFiles
 from model.tasksModel import Tasks
@@ -39,7 +39,7 @@ class QueryConductor(object):
         # itemkey = list(self.data.keys())[0]
         # 查询item所在的model
         print(item)
-        all_model = [Trial, User, taskFiles, Tasks]
+        all_model = [Project, User, taskFiles, Tasks]
         for i in all_model:
             if item[0] in dir(i):
                 return i.query.filter_by(**filters)
