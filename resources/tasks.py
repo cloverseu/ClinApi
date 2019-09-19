@@ -47,7 +47,7 @@ class TasksResource(Resource):
             tasksInfo = Tasks.query.all()
         result = TaskSchema().dump(tasksInfo, many=True).data
         for r in result:
-            r["belongedToTrialName"] = session.query(Trial).filter_by(trialID=r['belongedToTrialID']).first().trialName
+            r["belongedToTrialName"] = session.query(Project).filter_by(trialID=r['belongedToTrialID']).first().trialName
             r["taskCreatorName"] = session.query(User).filter_by(userID=r['taskCreatorID']).first().userName
             r["taskExecutorName"] = session.query(User).filter_by(userID=r['taskExecutorID']).first().userName
         return {'message':'success', 'tasksInfo':result}

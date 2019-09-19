@@ -2,6 +2,7 @@ from flask import request
 from flask_restful import Resource, reqparse
 from  model.userModel import User, UserSchema
 from model.user_projectModel import userProject,userProjectSchema
+from model.projectModel import Project,ProjectSchema
 from  model.db import db, session
 from  common.queryByItem import QueryConductor
 import datetime
@@ -21,24 +22,37 @@ class UserResource(Resource):
     #查询
     @auth_token
     def get(self, headers):
-        # userInfo = User.query.all()
-        # userResult = UserSchema().dump(userInfo, many=True).data
-        # userProjectResult = userProject
-        # return {'message':'success', 'data':result}
+
         data = self.parser.parse_args()
+
+        #获得用户信息
         userInfo = QueryConductor(data).queryProcess()
         if not userInfo:
             userInfo = User.query.all()
         result = UserSchema().dump(userInfo, many=True).data
-        userID = None
-        for i, k in enumerate(result):
-            userID = k["userID"]
 
-        print(userID)
-        user_projectInfo = userProject.query.filter_by(userID=userID).all()
+        #list->dict
+        for i, k in enumerate(result):
+            result = k
+
+        #获得指定用户参与的所有项目信息
+        result["userInvolvedProjectsID"] = []
+        result["userInvolvedProjectsName"] = []
+        result["userCanManageProjectsID"] = []
+        result["userCanManageProjectsName"] = []
+        user_projectInfo = userProject.query.filter_by(userID=result["userID"]).all()
         result_user_project = userProjectSchema().dump(user_projectInfo, many=True).data
         print(result_user_project)
-        return {"statusCode": "1", 'users': result, "project":result_user_project}
+        for r in result_user_project:
+            r["projectName"] = session.query(Project).filter_by(projectID=r['projectID']).first().projectName
+            result["userInvolvedProjectsID"].append(r["projectID"])
+            result["userInvolvedProjectsName"].append(r["projectName"])
+            if (r["userType"] == 1):
+                result["userCanManageProjectsID"].append(r["projectID"])
+                result["userCanManageProjectsName"].append(r["projectName"])
+
+
+        return {"statusCode": "1", 'users': result}
 
     #增加
     @auth_token
@@ -65,13 +79,6 @@ class UserResource(Resource):
             isAdmin = json_data['isAdmin'],
             userAccountStatus = json_data['userAccountStatus'],
             userLastLoginTime = None
-            # userLastLoginTime = json_data['userLastLoginTime']
-            # email = json_data['email'],
-            # date_create = datetime.datetime.now(),
-            # is_admin = json_data['is_admin'],
-            # can_createTrail = json_data['can_createTrail'],
-            # can_createSop = json_data['can_createSop'],
-            # is_active= json_data['is_active']
         )
         session.add(user)
         session.commit()

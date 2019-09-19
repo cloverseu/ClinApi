@@ -2,6 +2,8 @@ from flask import request
 from flask_restful import Resource, reqparse
 from  model.projectModel import Project, ProjectSchema
 from model.user_projectModel import userProject
+from model.userModel import User,UserSchema
+from model.user_projectModel import userProject, userProjectSchema
 from  model.db import db, session
 import time
 from  common.queryByItem import QueryConductor
@@ -34,7 +36,17 @@ class ProjectResource(Resource):
         if not studyInfo:
             studyInfo = Project.query.all()
         result = ProjectSchema().dump(studyInfo, many=True).data
-        return { "statusCode": "1", 'projectInfo':result}
+
+        projectID = None
+        for i, k in enumerate(result):
+            projectID = k["projectID"]
+        user_projectInfo = userProject.query.filter_by(projectID=projectID).all()
+        result_user_project = userProjectSchema().dump(user_projectInfo, many=True).data
+        print(result_user_project)
+        for r in result_user_project:
+            r["userName"] = session.query(User).filter_by(userID=r['userID']).first().username
+
+        return { "statusCode": "1", 'projectInfo':result, "user":result_user_project}
 
     #增加(这部分是否可以重复利用)
     @auth_token
