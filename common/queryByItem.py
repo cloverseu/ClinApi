@@ -31,9 +31,16 @@ class QueryConductor(object):
 
         filters = {}
         #返回key-value不为空的值
+        like_key = None
         for i in item:
             if (self.data.get(i)):
-                filters[i] = self.data.get(i)
+                # 仅能有一个模糊查询
+                if "%" in str(self.data.get(i)):
+                    like_key = i
+                    like_value = self.data.get(i)
+                else:
+                    filters[i] = self.data.get(i)
+
         print(filters)
         # tasksInfo = Tasks.query.filter_by(**filters)
         # itemkey = list(self.data.keys())[0]
@@ -42,7 +49,11 @@ class QueryConductor(object):
         all_model = [Project, User, taskFiles, Tasks]
         for i in all_model:
             if item[0] in dir(i):
-                return i.query.filter_by(**filters)
+                if (like_key):
+                    #属性作为参数传递i.i=>getattr()
+                    return i.query.filter(getattr(i,like_key).like(like_value)).all()
+                else:
+                    return i.query.filter_by(**filters)
         # try:
         #
         # #构造查询项
