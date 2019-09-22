@@ -17,6 +17,7 @@ class UserResource(Resource):
         self.header = request.headers
         self.parser.add_argument('userID', type=int)
         self.parser.add_argument('username', type=str)
+        self.parser.add_argument('userEmail', type=str)
 
 
     #查询

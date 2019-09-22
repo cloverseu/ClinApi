@@ -25,6 +25,33 @@ class ProjectResource(Resource):
     #查询
     @auth_token
     def get(self, headers):
+
+        # userInfo = QueryConductor(data).queryProcess()
+        # if not userInfo:
+        #     userInfo = User.query.all()
+        # results = UserSchema().dump(userInfo, many=True).data
+        # for result in results:
+        #     # list->dict
+        #     # for i, k in enumerate(result):
+        #     #     result = k
+        #
+        #     # 获得指定用户参与的所有项目信息
+        #     result["userInvolvedProjectsID"] = []
+        #     result["userInvolvedProjectsName"] = []
+        #     result["userCanManageProjectsID"] = []
+        #     result["userCanManageProjectsName"] = []
+        #     user_projectInfo = userProject.query.filter_by(userID=result["userID"]).all()
+        #     result_user_project = userProjectSchema().dump(user_projectInfo, many=True).data
+        #     print(result_user_project)
+        #     for r in result_user_project:
+        #         r["projectName"] = session.query(Project).filter_by(projectID=r['projectID']).first().projectName
+        #         result["userInvolvedProjectsID"].append(r["projectID"])
+        #         result["userInvolvedProjectsName"].append(r["projectName"])
+        #         if (r["userType"] == 1):
+        #             result["userCanManageProjectsID"].append(r["projectID"])
+        #             result["userCanManageProjectsName"].append(r["projectName"])
+        #
+        # return {"statusCode": "1", 'users': results}
         data = self.parser.parse_args()
         # data_project_id = data.get('projectID')
         # data_user_id = data.get('projectCreatorID')
@@ -35,18 +62,25 @@ class ProjectResource(Resource):
         studyInfo = QueryConductor(data).queryProcess()
         if not studyInfo:
             studyInfo = Project.query.all()
-        result = ProjectSchema().dump(studyInfo, many=True).data
+        results = ProjectSchema().dump(studyInfo, many=True).data
 
-        projectID = None
-        for i, k in enumerate(result):
-            projectID = k["projectID"]
-        user_projectInfo = userProject.query.filter_by(projectID=projectID).all()
-        result_user_project = userProjectSchema().dump(user_projectInfo, many=True).data
-        print(result_user_project)
-        for r in result_user_project:
-            r["userName"] = session.query(User).filter_by(userID=r['userID']).first().username
+        # projectID = None
+        # for i, k in enumerate(result):
+        #     projectID = k["projectID"]
+        for result in results:
+            result["projectInvolvedUsersID"] = []
+            result["projectInvolvedUsersName"] = []
+            user_projectInfo = userProject.query.filter_by(projectID=result["projectID"]).all()
+            result_user_project = userProjectSchema().dump(user_projectInfo, many=True).data
+            print(result_user_project)
+            result["projectManagerName"] = session.query(User).filter_by(userID=result['projectCreatorID']).first().username
+            for r in result_user_project:
+                r["username"] =  session.query(User).filter_by(userID=r["userID"]).first().username
+                if (r["userType"] == 2):
+                    result["projectInvolvedUsersID"].append(r["userID"])
+                    result["projectInvolvedUsersName"].append(r["username"])
 
-        return { "statusCode": "1", 'projectInfo':result, "user":result_user_project}
+        return { "statusCode": "1", 'project':results}
 
     #增加(这部分是否可以重复利用)
     @auth_token

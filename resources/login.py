@@ -39,7 +39,7 @@ class LoginResource(Resource):
                                 "message": "内容为空",
                                 "errorCode": "403"
                             }
-                        }, 403
+                        }
             # data, errors = UserSchema().load(json_data, session=session)
             # if errors:
             #     return errors, 422
@@ -52,14 +52,14 @@ class LoginResource(Resource):
                             "message": "用户不存在",
                             "errorCode": "403"
                             }
-                        }, 403
+                        }
             if (user.password!=json_data.get("password")):
                 return {"statusCode": "0",
                         "error": {
                             "message": "密码或用户名错误",
                             "errorCode": "403"
                             }
-                        }, 403
+                        }
 
             #更新登录时间
             user.userLastLoginTime =  time.ctime(time.time())

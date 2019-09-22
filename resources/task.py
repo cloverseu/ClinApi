@@ -1,6 +1,6 @@
 from flask import request
 from flask_restful import Resource, reqparse
-from  model.tasksModel import Tasks, TaskSchema
+from  model.taskModel import Task, TaskSchema
 from  model.userModel import User, UserSchema
 from  model.projectModel import Project, ProjectSchema
 from  model.db import db, session
@@ -10,13 +10,17 @@ import datetime
 
 
 
-class TasksResource(Resource):
+class TaskResource(Resource):
 
     def __init__(self):
         self.parser = reqparse.RequestParser()
         self.parser.add_argument('taskID', type=int)
+        self.parser.add_argument('taskName', type=str)
         self.parser.add_argument('taskCreatorID', type=int)
         self.parser.add_argument('taskExecutorID', type=int)
+        self.parser.add_argument('taskExecutorName', type=str)
+        self.parser.add_argument('taskReceivedStatus', type=str)
+        self.parser.add_argument('taskCompletedStatus', type=str)
         # parser.add_argument('file', type=FileStorage, location="files")
         # parser.add_argument('sop_name', type=str)
         # parser.add_argument('sop_description', type=str)
@@ -26,31 +30,15 @@ class TasksResource(Resource):
     def get(self, headers):
         # print(dir(Tasks))
         data = self.parser.parse_args()
-        # data_trial_id = data.get('taskID')
-        # print(data.keys())
-        # print(list(data.keys())[1])
-        # print('taskIDs' in data.keys())
-        # data_user_id = data.get('taskCreatorID')
-        # item = list(data.keys())
-        # for i in item:
-        #     if(data.get(i)):
-        #         item = i
-        # filters = {item:data.get(item)}
-        # print(filters)
-        # tasksInfo = Tasks.query.filter_by(**filters)
-        # if (data_trial_id or data_user_id):
-        #     tasksInfo = Tasks.query.filter_by(taskCreatorID=data_trial_id)
-        # else:
-        #     tasksInfo = Tasks.query.all()
         tasksInfo = QueryConductor(data).queryProcess()
         if not tasksInfo:
-            tasksInfo = Tasks.query.all()
+            tasksInfo = Task.query.all()
         result = TaskSchema().dump(tasksInfo, many=True).data
         for r in result:
-            r["belongedToTrialName"] = session.query(Project).filter_by(trialID=r['belongedToTrialID']).first().trialName
-            r["taskCreatorName"] = session.query(User).filter_by(userID=r['taskCreatorID']).first().userName
-            r["taskExecutorName"] = session.query(User).filter_by(userID=r['taskExecutorID']).first().userName
-        return {'message':'success', 'tasksInfo':result}
+            r["taskBelongedToProjectName"] = session.query(Project).filter_by(projectID=r['taskBelongedToProjectID']).first().projectName
+            r["taskCreatorName"] = session.query(User).filter_by(userID=r['taskCreatorID']).first().username
+            r["taskExecutorName"] = session.query(User).filter_by(userID=r['taskExecutorID']).first().username
+        return {"statusCode": "1", "tasksInfo":result}
 
     #增加(这部分是否可以重复利用)
     @auth_token
@@ -63,15 +51,15 @@ class TasksResource(Resource):
         data, errors = TaskSchema().load(json_data, session=session)
         if errors:
             return errors,422
-        name = Tasks.query.filter_by(taskName=json_data['taskName']).first()
+        name = Task.query.filter_by(taskName=json_data['taskName']).first()
         if name:
             return {'message': 'name already exists'}, 400
 
         #变量如果没有会怎样,需要指定阶段文件？
 
-        task = Tasks(
+        task = Task(
             taskName = json_data['taskName'],
-            belongedToTrialID = json_data['belongedToTrialID'],
+            taskBelongedToTrialID = json_data['belongedToTrialID'],
             #belongedToTrialName = json_data['belongedToTrialName'],
             taskCreatorID = json_data['taskCreatorID'],
             #taskCreatorName = json_data['taskCreatorName'],
@@ -87,7 +75,7 @@ class TasksResource(Resource):
         session.add(task)
         session.commit()
 
-        return {'message': 'success','taskID': task.taskID}
+        return {"statusCode": "1","taskID": task.taskID}
 
     #更新
     @auth_token
@@ -95,22 +83,22 @@ class TasksResource(Resource):
         json_data = request.get_json(force=True)
         data_task_id = json_data['taskID']
 
-        update_task = session.query(Tasks).filter_by(taskID=data_task_id).update()
+        update_task = session.query(Task).filter_by(taskID=data_task_id).update()
         update_task.update(json_data)
 
         session.commit()
 
-        return {'message': 'success'}
+        return { "statusCode": "1"}
 
     #删除
     @auth_token
     def delete(self, headers):
-        data = parser.parse_args()
+        data = self.parser.parse_args()
         data_task_id = data.get('taskID')
-        del_by_id = session.query(Tasks).filter_by( taskID = data_task_id).first()
+        del_by_id = session.query(Task).filter_by( taskID = data_task_id).first()
         session.delete(del_by_id)
         session.commit()
 
-        return { 'message':'success'}
+        return {"statusCode": "1"}
 
 

@@ -3,12 +3,12 @@ from model.db import db, ma
 from marshmallow_sqlalchemy import ModelSchema
 
 
-class Tasks(db.Model):
+class Task(db.Model):
 
-    __tablename__ = "tasks"
+    __tablename__ = "task"
     taskID = db.Column(db.Integer, primary_key=True, autoincrement = True, unique=True)
     taskName =  db.Column(db.String(255))
-    belongedToTrialID =   db.Column(db.Integer)
+    taskBelongedToProjectID =   db.Column(db.Integer)
     #belongedToTrialName = db.Column(db.String(255))
     taskCreatorID = db.Column(db.Integer)
     #taskCreatorName = db.Column(db.String(255))
@@ -22,11 +22,11 @@ class Tasks(db.Model):
     taskActualCompletedTime = db.Column(db.DateTime)
 
 
-    def __init__(self, taskName ,belongedToTrialID,  taskCreatorID,
+    def __init__(self, taskName ,taskBelongedToProjectID,  taskCreatorID,
                  taskCreatedTime, taskExecutorID,  taskReceivedStatus, taskDueTime,
                  taskProgress, taskCompletedStatus, taskActualCompletedTime):
         self.taskName = taskName
-        self.belongedToTrialID = belongedToTrialID
+        self.taskBelongedToProjectID = taskBelongedToProjectID
         #self.belongedToTrialName = belongedToTrialName
         self.taskCreatorID =taskCreatorID
         #self.taskCreatorName = taskCreatorName
@@ -45,7 +45,7 @@ class Tasks(db.Model):
 
 class TaskSchema(ModelSchema):
         class Meta:
-            model = Tasks
+            model = Task
 
 
  #      taskID: TASK001,
