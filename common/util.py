@@ -5,7 +5,7 @@ def auth_token(func):
     def deco(*args, **kwargs):
         header = request.headers
         print(header)
-        headers = jwt.decode(header["Authorization"], 'secret', algorithms=['HS256'])
+        headers = jwt.decode(header["Authentication"], 'secret', algorithms=['HS256'])
         res = func(*args, **kwargs, headers=headers)
         return res
         # try:

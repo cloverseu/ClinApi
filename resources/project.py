@@ -80,7 +80,11 @@ class ProjectResource(Resource):
                     result["projectInvolvedUsersID"].append(r["userID"])
                     result["projectInvolvedUsersName"].append(r["username"])
 
-        return { "statusCode": "1", 'project':results}
+        # return { "statusCode": "1", 'project':results}
+        if (data.get("projectID")):
+            return {"statusCode": "1", "project": results}
+        else:
+            return {"statusCode": "1", "projects": results}
 
     #增加(这部分是否可以重复利用)
     @auth_token

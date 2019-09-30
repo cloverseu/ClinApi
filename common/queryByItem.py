@@ -2,6 +2,8 @@ from model.projectModel import Project
 from model.userModel import User
 from model.fileModel import File
 from model.taskModel import Task
+from model.templateModel import Template
+from model.db import db
 
 
 
@@ -44,9 +46,14 @@ class QueryConductor(object):
         # tasksInfo = Tasks.query.filter_by(**filters)
         # itemkey = list(self.data.keys())[0]
         # 查询item所在的model
+        #db.session().query(models.TestItems, models.Test).join(models.Test, models.Test.id == models.TestItems.test_id)
+        #联合多表查询:多个对应一个表很难，建议这部分数据库重复，建议先把创建的内容弄起来
+        # a = Task.query.join(User,  Task.taskExecutorID == User.userID).filter(User.username=="user1").first()
+        # print(66,a.taskID)
         print(item)
-        all_model = [Project, User, File, Task]
+        all_model = [Project, User, File, Task, Template]
         for i in all_model:
+            #保证第一个字段一定在这个表里
             if item[0] in dir(i):
                 if (like_key):
                     #属性作为参数传递i.i=>getattr()

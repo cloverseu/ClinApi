@@ -46,14 +46,19 @@ class FileResource(Resource):
         results = FileSchema().dump(taskFilesInfo , many=True).data
         for result in results:
             result["fileDownloadURL"] = "/download/"+result["downloadURL"]
-            result["fileCreatorName"] = session.query(User).filter_by(userID=result['fileCreatorID']).first().userName
-            result["fileRemoveExecutorName"] = session.query(User).filter_by(userID=result['fileRemoveExecutorID']).first().userName
-            result["fileDeleteExecutorName"] = session.query(User).filter_by(userID=result['fileDeleteExecutorID']).first().userName
+            result["fileCreatorName"] = session.query(User).filter_by(userID=result['fileCreatorID']).first().username
+            result["fileRemoveExecutorName"] = session.query(User).filter_by(userID=result['fileRemoveExecutorID']).first().username
+            result["fileDeleteExecutorName"] = session.query(User).filter_by(userID=result['fileDeleteExecutorID']).first().username
             result["fileBelongedToTaskName"] = session.query(Task).filter_by(taskID=result['fileBelongedToTaskID']).first().taskName
             result["fileBelongedToProjectName"] = session.query(Project).filter_by(projectID=result['fileBelongedToProjectID']).first().projectName
-            result["deleteExecutorName"] = session.query(User).filter_by(userID=result['deleteExecutorID']).first().userName
+            result["deleteExecutorName"] = session.query(User).filter_by(userID=result['deleteExecutorID']).first().username
 
-        return {"statusCode": "1", 'users': results}
+        if (data.get("fileID")):
+            return {"statusCode": "1", "file": results}
+        else:
+            return {"statusCode": "1", "files": results}
+
+        # return {"statusCode": "1", 'users': results}
 
 
     # 增加
@@ -153,7 +158,7 @@ class FileResource(Resource):
         session.commit()
         return {"statusCode": "1"}
 
-    # 删除
+    # 删除a
     @auth_token
     def delete(self, headers):
         data = self.parser.parse_args()

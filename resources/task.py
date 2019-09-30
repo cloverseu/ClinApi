@@ -38,8 +38,10 @@ class TaskResource(Resource):
             r["taskBelongedToProjectName"] = session.query(Project).filter_by(projectID=r['taskBelongedToProjectID']).first().projectName
             r["taskCreatorName"] = session.query(User).filter_by(userID=r['taskCreatorID']).first().username
             r["taskExecutorName"] = session.query(User).filter_by(userID=r['taskExecutorID']).first().username
-        return {"statusCode": "1", "tasksInfo":result}
-
+        if (data.get("taskID")):
+            return {"statusCode": "1", "tasks":result}
+        else:
+            return {"statusCode": "1", "tasks": result}
     #增加(这部分是否可以重复利用)
     @auth_token
     def post(self, headers):

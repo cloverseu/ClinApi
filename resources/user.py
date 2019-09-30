@@ -52,8 +52,11 @@ class UserResource(Resource):
                     result["userCanManageProjectsID"].append(r["projectID"])
                     result["userCanManageProjectsName"].append(r["projectName"])
 
-
-        return {"statusCode": "1", 'users': results}
+        if (data.get("userID")):
+            return {"statusCode": "1", "user": results}
+        else:
+            return {"statusCode": "1", "users": results}
+        # return {"statusCode": "1", 'users': results}
 
     #增加
     @auth_token

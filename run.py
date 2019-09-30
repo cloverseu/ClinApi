@@ -6,11 +6,12 @@
 from flask import Flask
 from app import api_bp
 from model.db import db
+from flask_cors import CORS
 
 def create_app(config_filename):
     app = Flask(__name__)
     app.config.from_object(config_filename)
-
+    CORS(app)
     '''
     用于下载文件
     '''
@@ -26,4 +27,5 @@ def create_app(config_filename):
 
 if __name__ == "__main__":
     app = create_app("config")
-    app.run(debug=True, host="0.0.0.0")
+    app.run(debug=True)
+    # app.run(debug=True, host="0.0.0.0")

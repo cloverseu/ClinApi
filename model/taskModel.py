@@ -3,6 +3,8 @@ from model.db import db, ma
 from marshmallow_sqlalchemy import ModelSchema
 
 
+
+
 class Task(db.Model):
 
     __tablename__ = "task"
@@ -15,10 +17,10 @@ class Task(db.Model):
     taskCreatedTime = db.Column(db.DateTime)
     taskExecutorID = db.Column(db.Integer)
     #taskExecutorName = db.Column(db.String(255))
-    taskReceivedStatus = db.Column(db.Boolean)
+    taskReceivedStatus = db.Column(db.String)
     taskDueTime = db.Column(db.DateTime)
     taskProgress = db.Column(db.Integer)
-    taskCompletedStatus = db.Column(db.Boolean)
+    taskCompletedStatus = db.Column(db.String)
     taskActualCompletedTime = db.Column(db.DateTime)
 
 
@@ -41,7 +43,7 @@ class Task(db.Model):
 
 
     def __repr__(self):
-        return '<Sop %r>' % self. taskID
+        return '<Task %r>' % self. taskID
 
 class TaskSchema(ModelSchema):
         class Meta:
