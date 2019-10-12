@@ -4,7 +4,7 @@ from model.fileModel import File
 from model.taskModel import Task
 from model.templateModel import Template
 from model.db import db
-
+from sqlalchemy import func, text
 
 
 class QueryConductor(object):
@@ -36,13 +36,14 @@ class QueryConductor(object):
         #返回key-value不为空的值
         like_key = None
         for i in item:
+            print(i)
+            print(self.data.get(i))
             if (self.data.get(i)):
                 # 仅能有一个模糊查询
+                print(str(i))
                 if "ID" not in str(i):
                     like_key = 1
                 filters[i] = self.data.get(i)
-
-        print(filters)
         # tasksInfo = Tasks.query.filter_by(**filters)
         # itemkey = list(self.data.keys())[0]
         # 查询item所在的model
@@ -50,7 +51,7 @@ class QueryConductor(object):
         #联合多表查询:多个对应一个表很难，建议这部分数据库重复，建议先把创建的内容弄起来
         # a = Task.query.join(User,  Task.taskExecutorID == User.userID).filter(User.username=="user1").first()
         # print(66,a.taskID)
-        print(item)
+        q = None
         all_model = [Project, User, File, Task, Template]
         for i in all_model:
             #保证第一个字段一定在这个表里
@@ -58,9 +59,19 @@ class QueryConductor(object):
                 if (like_key):
                     #属性作为参数传递i.i=>getattr()
                     for j in filters:
-                        like_filters.append(getattr(i,j).like(filters[j]) if j is not None else "")
-                    print(like_filters)
-                    return i.query.filter(*like_filters).all()
+                        if "Time" in j:
+                            # 时间的查询单独拿出来，只针对这个变量，其他变量需要修改
+                            qsql =   "select * from project where to_char(project.\"projectCreatedTime\", 'YYYY-MM') like '"+filters[j]+"'"
+                            print(qsql)
+                            q = i.query.from_statement(text("select * from project where to_char(project.\"projectCreatedTime\", 'YYYY-MM') like '"+filters[j]+"'")).all()
+                        else:
+                            like_filters.append(getattr(i,j).like('%'+filters[j]+'%') if j is not None else "")
+                    #非时间的条件
+                    l = i.query.filter(*like_filters).all()
+                    if q:
+                        return list(set(l).intersection(set(q)))
+                    else:
+                        return l
                 else:
                     return i.query.filter_by(**filters)
         # try:

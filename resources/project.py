@@ -17,6 +17,14 @@ class ProjectResource(Resource):
         self.parser = reqparse.RequestParser()
         self.parser.add_argument('projectID', type=int)
         self.parser.add_argument('projectCreatorID', type=int)
+        self.parser.add_argument('projectName', type=str)
+        self.parser.add_argument('projectInvestigatorName', type=str)
+        self.parser.add_argument('projectSponsor', type=str)
+        self.parser.add_argument('projectInvolvedUserRealName', type=str)
+        self.parser.add_argument('projectCreatedYearMonth', type=str)
+        self.parser.add_argument('projectStage', type=str)
+        self.parser.add_argument('projectCreatedTime')
+
 
         # parser.add_argument('file', type=FileStorage, location="files")
         # parser.add_argument('sop_name', type=str)

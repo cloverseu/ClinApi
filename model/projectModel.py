@@ -8,7 +8,7 @@ class Project(db.Model):
     __tablename__ = "project"
     projectID = db.Column(db.Integer, primary_key=True, autoincrement = True, unique=True)
     projectName =  db.Column(db.String(255))
-    projectStage =  db.Column(db.Integer)
+    projectStage =  db.Column(db.String(255))
     projectBriefIntroduction = db.Column(db.String(255))
     projectCreatorID = db.Column(db.Integer)
     projectCreatedTime = db.Column(db.DateTime)
