@@ -45,13 +45,13 @@ class FileResource(Resource):
             taskFilesInfo = File.query.all()
         results = FileSchema().dump(taskFilesInfo , many=True).data
         for result in results:
-            result["fileDownloadURL"] = "/download/"+result["downloadURL"]
+            result["fileDownloadURL"] = "/download/"+result["fileDownloadURL"]
             result["fileCreatorName"] = session.query(User).filter_by(userID=result['fileCreatorID']).first().username
             result["fileRemoveExecutorName"] = session.query(User).filter_by(userID=result['fileRemoveExecutorID']).first().username
             result["fileDeleteExecutorName"] = session.query(User).filter_by(userID=result['fileDeleteExecutorID']).first().username
             result["fileBelongedToTaskName"] = session.query(Task).filter_by(taskID=result['fileBelongedToTaskID']).first().taskName
             result["fileBelongedToProjectName"] = session.query(Project).filter_by(projectID=result['fileBelongedToProjectID']).first().projectName
-            result["deleteExecutorName"] = session.query(User).filter_by(userID=result['deleteExecutorID']).first().username
+            result["fileDeleteExecutorName"] = session.query(User).filter_by(userID=result['fileDeleteExecutorID']).first().username
 
         if (data.get("fileID")):
             return {"statusCode": "1", "file": results}

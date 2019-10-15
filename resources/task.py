@@ -39,7 +39,7 @@ class TaskResource(Resource):
             r["taskCreatorName"] = session.query(User).filter_by(userID=r['taskCreatorID']).first().username
             r["taskExecutorName"] = session.query(User).filter_by(userID=r['taskExecutorID']).first().username
         if (data.get("taskID")):
-            return {"statusCode": "1", "tasks":result}
+            return {"statusCode": "1", "task":result}
         else:
             return {"statusCode": "1", "tasks": result}
     #增加(这部分是否可以重复利用)
@@ -50,9 +50,9 @@ class TaskResource(Resource):
             return {'message': 'No input data provided'}, 400
         print(json_data)
         #接收的日期格式为2014-08-11T05:26:03.869245
-        data, errors = TaskSchema().load(json_data, session=session)
-        if errors:
-            return errors,422
+        # data, errors = TaskSchema().load(json_data, session=session)
+        # if errors:
+        #     return errors,422
         name = Task.query.filter_by(taskName=json_data['taskName']).first()
         if name:
             return {'message': 'name already exists'}, 400

@@ -7,6 +7,8 @@ from  model.db import db, session
 from  common.queryByItem import QueryConductor
 import datetime
 from common.util import auth_token
+from common.util import sendMail
+import json
 
 
 class UserResource(Resource):
@@ -23,7 +25,9 @@ class UserResource(Resource):
     #查询
     @auth_token
     def get(self, headers):
-
+        #title必须大于5个字
+        #文件内容模板
+        #sendMail("求职soopooo", "382853739@qq.com")
         data = self.parser.parse_args()
 
         #获得用户信息
@@ -67,9 +71,9 @@ class UserResource(Resource):
         if not json_data:
             return {'message': 'No input data provided'}, 400
         print(json_data)
-        data, errors = UserSchema().load(json_data, session=session)
-        if errors:
-            return errors,422
+        # data, errors = UserSchema().load(json_data, session=session)
+        # if errors:
+        #     return errors,422
         user = User.query.filter_by(username=json_data['username']).first()
         if user:
             return {'message': 'user already exists'}, 400
@@ -87,6 +91,22 @@ class UserResource(Resource):
         session.add(user)
         session.commit()
 
+
+        db.session.execute(
+            userProject.__table__.insert(),
+            [{"userID": user.userID, "projectID": json_data["userInvolvedProjectsID"][i], "userType": "2"} for i
+             in range(len(json_data["userInvolvedProjectsID"]))]
+
+        )
+        db.session.commit()
+        db.session.execute(
+            userProject.__table__.insert(),
+            [{"userID": user.userID, "projectID": json_data['userCanManageProjectsID'][i], "userType": "1"}for i
+             in range(len(json_data["userCanManageProjectsID"]))]
+
+        )
+        db.session.commit()
+
         return {"statusCode": "1"}
 
     #更新
@@ -95,12 +115,35 @@ class UserResource(Resource):
         json_data = request.get_json(force=True)
         data_user_id = json_data['userID']
         update_user = session.query(User).filter_by(userID=data_user_id)
-        update_user.update(json_data)
+        update_json = json_data.copy()
+        update_json.pop("userInvolvedProjectsID")
+        update_json.pop("userCanManageProjectsID")
+
+        print(update_json)
+        update_user.update(update_json)
+        session.query(userProject).filter(userProject.userID==data_user_id).delete()
+        # session.delete(del_by_id)
         #更新方法，变量json_data中的所有数据
         # for k in json_data:
         #     update_user.update({k:json_data[k]})
 
         session.commit()
+
+        db.session.execute(
+            userProject.__table__.insert(),
+            [{"userID": data_user_id, "projectID": json_data["userInvolvedProjectsID"][i], "userType": "2"} for i
+             in range(len(json_data["userInvolvedProjectsID"]))]
+
+        )
+        db.session.commit()
+        db.session.execute(
+            userProject.__table__.insert(),
+            [{"userID": data_user_id, "projectID": json_data['userCanManageProjectsID'][i], "userType": "1"} for i
+             in range(len(json_data["userCanManageProjectsID"]))]
+
+        )
+        db.session.commit()
+
         return {"statusCode": "1"}
 
     #删除

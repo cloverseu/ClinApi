@@ -7,7 +7,6 @@ import time
 
 
 
-
 class LoginResource(Resource):
 
 

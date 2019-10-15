@@ -34,39 +34,7 @@ class ProjectResource(Resource):
     @auth_token
     def get(self, headers):
 
-        # userInfo = QueryConductor(data).queryProcess()
-        # if not userInfo:
-        #     userInfo = User.query.all()
-        # results = UserSchema().dump(userInfo, many=True).data
-        # for result in results:
-        #     # list->dict
-        #     # for i, k in enumerate(result):
-        #     #     result = k
-        #
-        #     # 获得指定用户参与的所有项目信息
-        #     result["userInvolvedProjectsID"] = []
-        #     result["userInvolvedProjectsName"] = []
-        #     result["userCanManageProjectsID"] = []
-        #     result["userCanManageProjectsName"] = []
-        #     user_projectInfo = userProject.query.filter_by(userID=result["userID"]).all()
-        #     result_user_project = userProjectSchema().dump(user_projectInfo, many=True).data
-        #     print(result_user_project)
-        #     for r in result_user_project:
-        #         r["projectName"] = session.query(Project).filter_by(projectID=r['projectID']).first().projectName
-        #         result["userInvolvedProjectsID"].append(r["projectID"])
-        #         result["userInvolvedProjectsName"].append(r["projectName"])
-        #         if (r["userType"] == 1):
-        #             result["userCanManageProjectsID"].append(r["projectID"])
-        #             result["userCanManageProjectsName"].append(r["projectName"])
-        #
-        # return {"statusCode": "1", 'users': results}
         data = self.parser.parse_args()
-        # data_project_id = data.get('projectID')
-        # data_user_id = data.get('projectCreatorID')
-        # if (data_project_id or data_user_id):
-        #     studyInfo = Project.query.filter_by(projectCreatorID=str(data_user_id))
-        # else:
-        #     studyInfo = Project.query.all()
         studyInfo = QueryConductor(data).queryProcess()
         if not studyInfo:
             studyInfo = Project.query.all()
@@ -101,9 +69,9 @@ class ProjectResource(Resource):
         if not json_data:
             return {'message': 'No input data provided'}, 400
         #接收的日期格式为2014-08-11T05:26:03.869245
-        data, errors = ProjectSchema().load(json_data, session=session)
-        if errors:
-            return errors,422
+        # data, errors = ProjectSchema().load(json_data, session=session)
+        # if errors:
+        #     return errors,422
         name = Project.query.filter_by(projectName=json_data['projectName']).first()
         if name:
             return {'message': 'name already exists'}, 400
@@ -129,19 +97,19 @@ class ProjectResource(Resource):
 
         session.add(project)
         db.session.commit()
-        db.session.execute(
-            userProject.__table__.insert(),
-            [{"projectID":project.projectID , "userID": json_data["projectInvolvedUsersID"][i], "userType":"2"} for i in range(len(json_data["projectInvolvedUsersID"]))]
-
-        )
-        db.session.commit()
-        db.session.execute(
-            userProject.__table__.insert(),
-            [{"projectID": project.projectID, "userID": json_data['projectCreatorID'], "userType": "1"}
-]
-
-        )
-        db.session.commit()
+#         db.session.execute(
+#             userProject.__table__.insert(),
+#             [{"projectID":project.projectID , "userID": json_data["projectInvolvedUsersID"][i], "userType":"2"} for i in range(len(json_data["projectInvolvedUsersID"]))]
+#
+#         )
+#         db.session.commit()
+#         db.session.execute(
+#             userProject.__table__.insert(),
+#             [{"projectID": project.projectID, "userID": json_data['projectCreatorID'], "userType": "1"}
+# ]
+#
+#         )
+#         db.session.commit()
         return {'message': 'success','projectID': project.projectID}
 
     #更新，如果要修改则需要删掉原先的userproject中的关联重新添加

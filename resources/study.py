@@ -32,9 +32,9 @@ class StudyResource(Resource):
             return {'message': 'No input data provided'}, 400
         print(json_data)
         #接收的日期格式为2014-08-11T05:26:03.869245
-        data, errors = StudySchema().load(json_data, session=session)
-        if errors:
-            return errors,422
+        # data, errors = StudySchema().load(json_data, session=session)
+        # if errors:
+        #     return errors,422
         name = Study.query.filter_by(name=json_data['name']).first()
         if name:
             return {'message': 'name already exists'}, 400

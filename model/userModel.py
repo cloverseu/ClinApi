@@ -1,5 +1,5 @@
 from model.db import db, ma
-#from marshmallow import Schema, fields, pre_load, validate
+from marshmallow import Schema, fields, pre_load, validate
 from marshmallow_sqlalchemy import ModelSchema
 
 
@@ -12,7 +12,7 @@ class User(db.Model):
     password = db.Column(db.String(255))
     userEmail = db.Column(db.String(255))
     isAdmin = db.Column(db.Boolean)
-    userAccountStatus = db.Column(db.Boolean)
+    userAccountStatus = db.Column(db.String)
     userLastLoginTime = db.Column(db.DateTime)
 
     def __init__(self, username, userRealName, password, userEmail, isAdmin, userAccountStatus, userLastLoginTime):
@@ -28,9 +28,9 @@ class User(db.Model):
     def __repr__(self):
         return '<User %r>' % self.userID
 
-class UserSchema(ModelSchema):
-        class Meta:
-            model = User
+# class UserSchema(ModelSchema):
+#         class Meta:
+#             model = User
 
 # class User(db.Model):
 #
@@ -60,21 +60,18 @@ class UserSchema(ModelSchema):
 #     def __repr__(self):
 #         return '<User %r>' % self.user_id
 #
-# # class UserSchema(ModelSchema):
-# #         class Meta:
-# #             model = User
-#
+class UserSchema(ModelSchema):
+        class Meta:
+            model = User
+
 #
 #
 #
 # class UserSchema(ma.Schema):
-#     user_id = fields.Integer(dump_only=True)
 #     username = fields.String(required=True, dump_only=True)
-#     password = fields.String(required=True)
-#     email = fields.String()
-#     #此处需要设置默认值
-#     is_admin = fields.Integer()
-#     can_createTrail = fields.Integer()
-#     can_createSop = fields.Integer()
-#     #date_create = fields.DateTime()
-#     is_active = fields.Integer()
+#     userRealName = fields.String(required=True, dump_only=True)
+#     password = fields.String(required=True, dump_only=True)
+#     userEmail = fields.String(required=True, dump_only=True)
+#     isAdmin = fields.Boolean()
+#     userAccountStatus = fields.Boolean()
+    # userLastLoginTime = fields.DateTime(required=False)

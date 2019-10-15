@@ -10,3 +10,11 @@ basedir = os.path.abspath(os.path.dirname(__file__))
 SQLALCHEMY_ECHO = False
 SQLALCHEMY_TRACK_MODIFICATIONS = True
 SQLALCHEMY_DATABASE_URI = "postgresql://postgres:123456@localhost:5432/trial"
+
+#mail config
+MAIL_SERVER = "smtp.163.com"
+MAIL_PORT =  25
+MAIL_USE_TLS = True
+MAIL_USE_SSL = False
+MAIL_USERNAME = "interclin@163.com"
+MAIL_PASSWORD = "intercli666dd"
