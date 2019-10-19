@@ -1,7 +1,11 @@
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+
 from flask import request, redirect, url_for, Flask
 import jwt
 from flask_mail import Message, Mail
 from config import MAIL_PASSWORD, MAIL_SERVER, MAIL_PORT, MAIL_USERNAME
+from email.header import Header
 
 def auth_token(func):
     def deco(*args, **kwargs):
@@ -25,7 +29,7 @@ def auth_token(func):
 
     return deco
 
-def sendMail(title, recipients):
+def sendMail(title, recipients,*args):
     app = Flask(__name__)
     app.config['MAIL_SERVER'] = MAIL_SERVER
     app.config['MAIL_PORT'] = MAIL_PORT
@@ -37,6 +41,18 @@ def sendMail(title, recipients):
     mail = Mail(app)
     mail.init_app(app)
     #要把自己再抄送一遍
-    msg = Message(title, sender="interclin@163.com", recipients=[recipients, "interclin@163.com"])
-    msg.html = "<b>testing1</b>"
+    msg = Message(title, sender="interclin@163.com", recipients=[recipients, "interclin@163.com"], charset='utf-8')
+    #用户信息
+    #创建/修改新用户发确认邮件
+    if len(args)>3:
+        txt = "亲爱的" + args[0] + "，<br>您好，管理员为您分配了新的任务。任务信息如下：<br><br>项目:" \
+               + args[1] + "<br>任务名称：" + args[2] + "<br>任务描述：" + args[3] + "<br>截止日期：" +    args[4] + "<br><br>请登录查看相关信息，有问题请与我们联系<br>http://47.100.168.127:8866/ctms<br>系统管理员"
+    else:
+        txt = "亲爱的"+args[0]+"，<br>您好，管理员为您创建了新的用户。用户信息如下：<br><br>用户名:"\
+           +args[1]+"<br>密码："+args[2]+"<br><br>请测试您的登录信息，有问题请与我们联系<br>http://47.100.168.127:8866/ctms<br>系统管理员"
+
+
+    #附件地址
+    print(txt)
+    msg.html = txt
     mail.send(msg)

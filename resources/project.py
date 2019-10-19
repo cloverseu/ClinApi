@@ -16,7 +16,7 @@ class ProjectResource(Resource):
     def __init__(self):
         self.parser = reqparse.RequestParser()
         self.parser.add_argument('projectID', type=int)
-        self.parser.add_argument('projectCreatorID', type=int)
+        # self.parser.add_argument('projectCreatorID', type=int)
         self.parser.add_argument('projectName', type=str)
         self.parser.add_argument('projectInvestigatorName', type=str)
         self.parser.add_argument('projectSponsor', type=str)
@@ -82,7 +82,7 @@ class ProjectResource(Resource):
             projectName = json_data['projectName'],
             projectStage = json_data['projectStage'],
             projectBriefIntroduction = json_data['projectBriefIntroduction'],
-            projectCreatorID = json_data['projectCreatorID'],
+            # projectCreatorID = json_data['projectCreatorID'],
             projectCreatedTime = time.ctime(time.time()),
             projectExpectedStartTime = json_data['projectExpectedStartTime'],
             projectActualStartTime = json_data['projectActualStartTime'],

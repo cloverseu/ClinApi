@@ -106,7 +106,7 @@ class UserResource(Resource):
 
         )
         db.session.commit()
-
+        sendMail("新用户创建成功", user.userEmail,user.userRealName, user.username, user.password)
         return {"statusCode": "1"}
 
     #更新

@@ -6,8 +6,8 @@ from  model.projectModel import Project, ProjectSchema
 from  model.db import db, session
 from  common.queryByItem import QueryConductor
 from common.util import auth_token
-import datetime
-
+import time
+from common.util import sendMail
 
 
 class TaskResource(Resource):
@@ -21,6 +21,7 @@ class TaskResource(Resource):
         self.parser.add_argument('taskExecutorName', type=str)
         self.parser.add_argument('taskReceivedStatus', type=str)
         self.parser.add_argument('taskCompletedStatus', type=str)
+        self.parser.add_argument('taskDescription', type=str)
         # parser.add_argument('file', type=FileStorage, location="files")
         # parser.add_argument('sop_name', type=str)
         # parser.add_argument('sop_description', type=str)
@@ -61,21 +62,26 @@ class TaskResource(Resource):
 
         task = Task(
             taskName = json_data['taskName'],
-            taskBelongedToTrialID = json_data['belongedToTrialID'],
+            taskBelongedToProjectID = json_data['taskBelongedToProjectID'],
             #belongedToTrialName = json_data['belongedToTrialName'],
-            taskCreatorID = json_data['taskCreatorID'],
+            # taskCreatorID = json_data['taskCreatorID'],
             #taskCreatorName = json_data['taskCreatorName'],
-            taskCreatedTime = json_data['taskCreatedTime'],
+            taskCreatedTime = time.strftime("%Y-%m-%d", time.localtime()),
             taskExecutorID = json_data['taskExecutorID'],
             #taskExecutorName = json_data['taskExecutorName'],
             taskReceivedStatus = json_data['taskReceivedStatus'],
             taskDueTime = json_data['taskDueTime'],
             taskProgress = json_data['taskProgress'],
             taskCompletedStatus = json_data['taskCompletedStatus'],
+            taskDescription = json_data['taskDescription'],
             taskActualCompletedTime = json_data['taskActualCompletedTime']
         )
         session.add(task)
         session.commit()
+
+        executor = User.query.filter(User.userID==task.taskExecutorID).first()
+        taskBelongedToProject = Project.query.filter(Project.projectID == task.taskBelongedToProjectID).first()
+        sendMail("任务分配通知", executor.userEmail, executor.userRealName, taskBelongedToProject.projectName,task.taskName, task.taskDescription, task.taskDueTime.strftime("%Y-%m-%d"))
 
         return {"statusCode": "1","taskID": task.taskID}
 
@@ -85,7 +91,7 @@ class TaskResource(Resource):
         json_data = request.get_json(force=True)
         data_task_id = json_data['taskID']
 
-        update_task = session.query(Task).filter_by(taskID=data_task_id).update()
+        update_task = session.query(Task).filter_by(taskID=data_task_id)
         update_task.update(json_data)
 
         session.commit()

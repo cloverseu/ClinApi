@@ -10,7 +10,7 @@ class Project(db.Model):
     projectName =  db.Column(db.String(255))
     projectStage =  db.Column(db.String(255))
     projectBriefIntroduction = db.Column(db.String(255))
-    projectCreatorID = db.Column(db.Integer)
+    # projectCreatorID = db.Column(db.Integer)
     projectCreatedTime = db.Column(db.DateTime)
     projectExpectedStartTime = db.Column(db.DateTime)
     projectActualStartTime = db.Column(db.DateTime)
@@ -25,13 +25,13 @@ class Project(db.Model):
 
 
 
-    def __init__(self, projectName ,projectStage, projectBriefIntroduction, projectCreatorID, projectCreatedTime, projectExpectedStartTime,
+    def __init__(self, projectName ,projectStage, projectBriefIntroduction, projectCreatedTime, projectExpectedStartTime,
                  projectActualStartTime, projectExpectedEndTime, projectActualEndTime, projectSponsor, projectInvestigator,
                  projectMonitor, projectStatistician):
         self.projectName = projectName
         self.projectStage = projectStage
         self.projectBriefIntroduction = projectBriefIntroduction
-        self.projectCreatorID = projectCreatorID
+        # self.projectCreatorID = projectCreatorID
         self.projectCreatedTime = projectCreatedTime
         self.projectExpectedStartTime = projectExpectedStartTime
         self.projectActualStartTime = projectActualStartTime

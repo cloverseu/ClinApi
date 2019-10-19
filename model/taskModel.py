@@ -12,7 +12,7 @@ class Task(db.Model):
     taskName =  db.Column(db.String(255))
     taskBelongedToProjectID =   db.Column(db.Integer)
     #belongedToTrialName = db.Column(db.String(255))
-    taskCreatorID = db.Column(db.Integer)
+    # taskCreatorID = db.Column(db.Integer)
     #taskCreatorName = db.Column(db.String(255))
     taskCreatedTime = db.Column(db.DateTime)
     taskExecutorID = db.Column(db.Integer)
@@ -21,16 +21,17 @@ class Task(db.Model):
     taskDueTime = db.Column(db.DateTime)
     taskProgress = db.Column(db.Integer)
     taskCompletedStatus = db.Column(db.String)
+    taskDescription = db.Column(db.String)
     taskActualCompletedTime = db.Column(db.DateTime)
 
 
-    def __init__(self, taskName ,taskBelongedToProjectID,  taskCreatorID,
+    def __init__(self, taskName ,taskBelongedToProjectID,
                  taskCreatedTime, taskExecutorID,  taskReceivedStatus, taskDueTime,
-                 taskProgress, taskCompletedStatus, taskActualCompletedTime):
+                 taskProgress, taskCompletedStatus, taskDescription ,taskActualCompletedTime):
         self.taskName = taskName
         self.taskBelongedToProjectID = taskBelongedToProjectID
         #self.belongedToTrialName = belongedToTrialName
-        self.taskCreatorID =taskCreatorID
+        # self.taskCreatorID =taskCreatorID
         #self.taskCreatorName = taskCreatorName
         self.taskCreatedTime = taskCreatedTime
         self.taskExecutorID = taskExecutorID
@@ -39,6 +40,7 @@ class Task(db.Model):
         self.taskDueTime = taskDueTime
         self.taskProgress = taskProgress
         self.taskCompletedStatus = taskCompletedStatus
+        self.taskDescription = taskDescription
         self.taskActualCompletedTime = taskActualCompletedTime
 
 
