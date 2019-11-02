@@ -9,7 +9,7 @@ from werkzeug.datastructures import FileStorage
 from werkzeug.utils import secure_filename
 from  common.queryByItem import QueryConductor
 from common.util import auth_token
-import datetime
+import time
 import os
 import re
 
@@ -19,13 +19,13 @@ class TemplateResource(Resource):
         self.parser = reqparse.RequestParser()
         self.header = request.headers
         self.parser.add_argument('templateName', type=str)
-        self.parser.add_argument('templateID', type=int)
+        self.parser.add_argument('templateID', required=False)
         # self.parser.add_argument('templateBelongedToTaskName', type=str)
         # self.parser.add_argument('templateBelongedToProjectName', type=str)
         # self.parser.add_argument('templateCreatorName', type=str)
         self.parser.add_argument('templateStatus', type=str)
         self.parser.add_argument('template', type=FileStorage, location="templates")
-        # self.parser.add_argument('templateDescription', type=str)
+        self.parser.add_argument('templateDescription', type=str)
         # self.parser.add_argument('templateBelongedToTaskID' , type=str)
         # self.parser.add_argument('templateBelongedToProjectID', type=str)
         # self.parser.add_argument('templateCreateDate', type=str)
@@ -47,10 +47,14 @@ class TemplateResource(Resource):
         for result in results:
             result["templateDownloadURL"] = "/download/"+result["templateDownloadURL"]
             result["templateCreatorName"] = session.query(User).filter_by(userID=result['templateCreatorID']).first().username
-            result["templateRemoveExecutorName"] = session.query(User).filter_by(userID=result['templateRemoveExecutorID']).first().username
-            result["templateDeleteExecutorName"] = session.query(User).filter_by(userID=result['templateDeleteExecutorID']).first().username
-            # result["deleteExecutorName"] = session.query(User).filter_by(userID=result['deleteExecutorID']).first().username
-
+            if result['templateRemoveExecutorID']:
+                result["templateRemoveExecutorName"] = session.query(User).filter_by(userID=result['templateRemoveExecutorID']).first().username
+            else:
+                result["templateRemoveExecutorName"] = ""
+            if result['templateDeleteExecutorID']:
+                result["templateDeleteExecutorName"] = session.query(User).filter_by(userID=result['templateDeleteExecutorID']).first().username
+            else:
+                result["templateDeleteExecutorName"] = ""
         if (data.get("templateID")):
             return {"statusCode": "1", "template": results}
         else:
@@ -75,81 +79,54 @@ class TemplateResource(Resource):
             #     return {'message': 'taskTemplate already exists'}, 400
 
             #变量如果没有会怎样,需要指定阶段文件？
-            template = data.get('template')
+            template = request.files['template']
             if not template:
                 return {'message': 'No input  template provided'}, 400
             template_name = Template.query.filter_by(templateName=data.get('templateName')).first()
-
-
+            template_URL = Template.query.filter_by(templateDownloadURL=template.filename).first()
 
             taskTemplate = Template(
                 templateName=data.get('templateName'),
                 templateDescription = data.get('templateDescription'),
-                templateCreateDate = data.get('templateCreateDate'),
-                templateCreatorID = data.get('templateCreatorID'),
+                templateCreateDate = time.ctime(time.time()),
+                templateCreatorID = headers["userID"],
                 templateStatus = data.get('templateStatus'),
-                templateRemoveDate = data.get('templateRemoveDate'),
-                templateRemoveExecutorID = data.get('templateRemoveExecutorID'),
-                templateDeleteDate = data.get('templateDeleteDate'),
-                templateDeleteExecutorID = data.get('templateDeleteExecutorID'),
-                templateDownloadURL = data.get('templateDownloadURL')
+                templateRemoveDate = None,
+                templateRemoveExecutorID = None,
+                templateDeleteDate = None,
+                templateDeleteExecutorID = None,
+                templateDownloadURL =  template.filename
             )
 
             if template_name:
                     return {'message': 'taskTemplate already exists'}, 400
+            if template_URL:
+                    return {'message': 'Template file already exists, please rename'}, 400
             #略掉中文字符,文件不要有中文字符
             # templatename = secure_templatename(template.templatename)
-            template.save(os.path.join('./static/', template.templateName))
+            template.save(os.path.join('./static/', template.filename))
             session.add(taskTemplate)
             session.commit()
                 #return {'message': 'template save error'}, 400
 
 
-            return {'message':'success','taskID':taskTemplate.templateID}
+            return {"statusCode": "1"}
 
 
-    # @auth_token
-    # def post(self, headers):
-    #     print(headers['userID'])
-    #     # 需要判断该用户是否有增加新用户的权限
-    #     json_data = request.get_json(force=True)
-    #     if not json_data:
-    #         return {'message': 'No input data provided'}, 400
-    #     print(json_data)
-    #     data, errors = TemplateSchema().load(json_data, session=session)
-    #     if errors:
-    #         return errors, 422
-    #     template = Template.query.filter_by(templatename=json_data['templatename']).first()
-    #     if template:
-    #         return {'message': 'user already exists'}, 400
-    #
-    #     # 变量如果没有会怎样
-    #     template_up = Template(
-    #         templateName=json_data['templateName'],
-    #         templateDescription = json_data['templateDescription'],
-    #         templateBelongedToTaskID = json_data['templateBelongedToTaskID'],
-    #         templateBelongedToProjectID = json_data['templateBelongedToProjectID'],
-    #         templateCreateDate = json_data['templateCreateDate'],
-    #         templateCreatorID = json_data['templateCreatorID'],
-    #         templateStatus = json_data['templateStatus'],
-    #         templateRemoveDate = json_data['templateRemoveDate'],
-    #         templateRemoveExecutorID = json_data['templateRemoveExecutorID'],
-    #         templateDeleteDate = json_data['templateDeleteDate'],
-    #         templateDeleteExecutorID = json_data['templateDeleteExecutorID'],
-    #         templateDownloadURL = json_data['templateDownloadURL']
-    #     )
-    #     session.add(template_up)
-    #     session.commit()
-    #
-    #     return {"statusCode": "1"}
 
     # 更新
     @auth_token
     def put(self, headers):
-        json_data = request.get_json(force=True)
-        data_template_id = json_data['templateID']
-        update_template = session.query(Template).filter_by(templateID=data_template_id)
-        update_template.update(json_data)
+        # json_data = request.get_json(force=True)
+        data = self.parser.parse_args()
+        data_template_id = data.get('templateID')
+        update_template = session.query(Template).filter_by(templateID=data_template_id).first()
+        update_template.templateName = data.get('templateName')
+        update_template.templateDescription = data.get('templateDescription')
+        update_template.templateStatus = data.get('templateStatus')
+        if data.get('templateStatus') == "2":
+            update_template.templateRemoveExecutorID = headers["userID"]
+            update_template.templateRemoveDate = time.ctime(time.time())
         # 更新方法，变量json_data中的所有数据
         # for k in json_data:
         #     update_user.update({k:json_data[k]})
@@ -161,7 +138,7 @@ class TemplateResource(Resource):
     def delete(self, headers):
         data = self.parser.parse_args()
         data_template_id = data.get('templateID')
-        del_by_id = session.query(User).filter_by(templateID=data_template_id).first()
+        del_by_id = session.query(Template).filter_by(templateID=data_template_id).first()
         session.delete(del_by_id)
         session.commit()
 

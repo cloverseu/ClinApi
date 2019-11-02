@@ -9,7 +9,7 @@ from werkzeug.datastructures import FileStorage
 from werkzeug.utils import secure_filename
 from  common.queryByItem import QueryConductor
 from common.util import auth_token
-import datetime
+import time
 import os
 import re
 
@@ -19,10 +19,9 @@ class FileResource(Resource):
         self.parser = reqparse.RequestParser()
         self.header = request.headers
         self.parser.add_argument('fileName', type=str)
-        self.parser.add_argument('fileID', type=int)
-        self.parser.add_argument('fileBelongedToTaskName', type=str)
-        self.parser.add_argument('fileBelongedToProjectName', type=str)
-        self.parser.add_argument('fileCreatorName', type=str)
+        self.parser.add_argument('fileID')
+        self.parser.add_argument('fileBelongedToTaskID', type=str)
+        self.parser.add_argument('fileBelongedToProjectID', type=str)
         self.parser.add_argument('fileStatus', type=str)
         self.parser.add_argument('file', type=FileStorage, location="files")
         # self.parser.add_argument('fileDescription', type=str)
@@ -47,11 +46,15 @@ class FileResource(Resource):
         for result in results:
             result["fileDownloadURL"] = "/download/"+result["fileDownloadURL"]
             result["fileCreatorName"] = session.query(User).filter_by(userID=result['fileCreatorID']).first().username
-            result["fileRemoveExecutorName"] = session.query(User).filter_by(userID=result['fileRemoveExecutorID']).first().username
-            result["fileDeleteExecutorName"] = session.query(User).filter_by(userID=result['fileDeleteExecutorID']).first().username
             result["fileBelongedToTaskName"] = session.query(Task).filter_by(taskID=result['fileBelongedToTaskID']).first().taskName
-            result["fileBelongedToProjectName"] = session.query(Project).filter_by(projectID=result['fileBelongedToProjectID']).first().projectName
-            result["fileDeleteExecutorName"] = session.query(User).filter_by(userID=result['fileDeleteExecutorID']).first().username
+            if result['fileBelongedToProjectID']:
+                result["fileBelongedToProjectName"] = session.query(Project).filter_by(projectID=result['fileBelongedToProjectID']).first().projectName
+            if result['fileRemoveExecutorID']:
+                result["fileRemoveExecutorName"] = session.query(User).filter_by(userID=result['fileRemoveExecutorID']).first().username
+            if result['fileDeleteExecutorID']:
+                result["fileDeleteExecutorName"] = session.query(User).filter_by(userID=result['fileDeleteExecutorID']).first().username
+            if result['fileDeleteExecutorID']:
+                result["fileDeleteExecutorName"] = session.query(User).filter_by(userID=result['fileDeleteExecutorID']).first().username
 
         if (data.get("fileID")):
             return {"statusCode": "1", "file": results}
@@ -77,28 +80,41 @@ class FileResource(Resource):
             #     return {'message': 'taskFile already exists'}, 400
 
             #变量如果没有会怎样,需要指定阶段文件？
-            file = data.get('file')
+            file = request.files['file']
             if not file:
                 return {'message': 'No input  file provided'}, 400
             file_name = File.query.filter_by(fileName=data.get('fileName')).first()
-
+            file_URL = File.query.filter_by(fileDownloadURL = file.filename).first()
 
 
             taskFile = File(
-                belongedToTaskID = data.get('belongedToTaskID'),
                 fileName = data.get('fileName'),
-                createDate = data.get('createDate'),
-                creatorID = data.get('creatorID'),
-                # self.creatorName = creatorName
-                description = data.get('description'),
-                deleteDate = data.get('deleteDate'),
-                deleteExecutorID = data.get('deleteExecutorID'),
-                # self.deleteExecutorName = deleteExecutorName
-                downloadURL = file.filename
+                fileDescription =  data.get('fileDescription'),
+                fileBelongedToTaskID = data.get('fileBelongedToTaskID'),
+                fileBelongedToProjectID = data.get('fileBelongedToProjectID'),
+                fileCreateDate = time.ctime(time.time()),
+                fileCreatorID = headers["userID"],
+                fileStatus = data.get('fileStatus'),
+                fileRemoveDate =  None,
+                fileRemoveExecutorID =  None,
+                fileDeleteDate =  None,
+                fileDeleteExecutorID =  None,
+                fileDownloadURL = file.filename
+                # fileName = data.get('fileName'),
+                # createDate = data.get('createDate'),
+                # creatorID = data.get('creatorID'),
+                # # self.creatorName = creatorName
+                # description = data.get('description'),
+                # deleteDate = data.get('deleteDate'),
+                # deleteExecutorID = data.get('deleteExecutorID'),
+                # # self.deleteExecutorName = deleteExecutorName
+                # downloadURL = file.filename
             )
 
             if file_name:
                     return {'message': 'taskFile already exists'}, 400
+            if file_URL:
+                return {'message': 'File already exists, please rename'}, 400
             #略掉中文字符,文件不要有中文字符
             # filename = secure_filename(file.filename)
             file.save(os.path.join('./static/', file.filename))
@@ -107,7 +123,7 @@ class FileResource(Resource):
                 #return {'message': 'file save error'}, 400
 
 
-            return {'message':'success','taskID':taskFile.fileID}
+            return {"statusCode": "1"}
 
 
     # @auth_token
@@ -148,10 +164,20 @@ class FileResource(Resource):
     # 更新
     @auth_token
     def put(self, headers):
-        json_data = request.get_json(force=True)
-        data_file_id = json_data['fileID']
-        update_file = session.query(File).filter_by(fileID=data_file_id)
-        update_file.update(json_data)
+        # json_data = request.get_json(force=True)
+        data = self.parser.parse_args()
+        data_file_id = data.get("fileID")
+        # data_file_id = json_data['fileID']
+        update_file = session.query(File).filter_by(fileID=data_file_id).first()
+        update_file.fileName = data.get('fileName')
+        update_file.fileDescription = data.get('fileDescription')
+        update_file.fileStatus = data.get('fileStatus')
+
+        if data.get('fileStatus') == "2":
+            update_file.fileRemoveID  = headers["userID"]
+            update_file.fileRemoveDate = time.ctime(time.time())
+
+        # update_file.update()
         # 更新方法，变量json_data中的所有数据
         # for k in json_data:
         #     update_user.update({k:json_data[k]})
@@ -163,7 +189,7 @@ class FileResource(Resource):
     def delete(self, headers):
         data = self.parser.parse_args()
         data_file_id = data.get('fileID')
-        del_by_id = session.query(User).filter_by(fileID=data_file_id).first()
+        del_by_id = session.query(File).filter_by(fileID=data_file_id).first()
         session.delete(del_by_id)
         session.commit()
 

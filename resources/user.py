@@ -25,6 +25,7 @@ class UserResource(Resource):
     #查询
     @auth_token
     def get(self, headers):
+
         #title必须大于5个字
         #文件内容模板
         #sendMail("求职soopooo", "382853739@qq.com")
@@ -91,21 +92,22 @@ class UserResource(Resource):
         session.add(user)
         session.commit()
 
+        if "userInvolvedProjectsID" in json_data:
+            db.session.execute(
+                userProject.__table__.insert(),
+                [{"userID": user.userID, "projectID": json_data["userInvolvedProjectsID"][i], "userType": "2"} for i
+                 in range(len(json_data["userInvolvedProjectsID"]))]
 
-        db.session.execute(
-            userProject.__table__.insert(),
-            [{"userID": user.userID, "projectID": json_data["userInvolvedProjectsID"][i], "userType": "2"} for i
-             in range(len(json_data["userInvolvedProjectsID"]))]
+            )
+            db.session.commit()
+        if 'userCanManageProjectsID' in json_data:
+            db.session.execute(
+                userProject.__table__.insert(),
+                [{"userID": user.userID, "projectID": json_data['userCanManageProjectsID'][i], "userType": "1"}for i
+                 in range(len(json_data["userCanManageProjectsID"]))]
 
-        )
-        db.session.commit()
-        db.session.execute(
-            userProject.__table__.insert(),
-            [{"userID": user.userID, "projectID": json_data['userCanManageProjectsID'][i], "userType": "1"}for i
-             in range(len(json_data["userCanManageProjectsID"]))]
-
-        )
-        db.session.commit()
+            )
+            db.session.commit()
         sendMail("新用户创建成功", user.userEmail,user.userRealName, user.username, user.password)
         return {"statusCode": "1"}
 
@@ -151,8 +153,12 @@ class UserResource(Resource):
     def delete(self, headers):
         data = self.parser.parse_args()
         data_user_id = data.get('userID')
-        del_by_id = session.query(User).filter_by(userID = data_user_id).first()
-        session.delete(del_by_id)
+
+        session.query(userProject).filter(userProject.userID==data_user_id).delete()
+
+        session.query(User).filter(User.userID==data_user_id).delete()
+        #del_by_id = session.query(User).filter_by(userID = data_user_id).first()
+        #session.delete(del_by_id)
         session.commit()
 
         return { "statusCode": "1"}

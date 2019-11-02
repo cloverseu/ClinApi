@@ -31,16 +31,18 @@ class QueryConductor(object):
         #返回所有的parser.add_argument对应的key值
         item = list(self.data.keys())
 
+        #精确ID查询
         filters = {}
+        #模糊查询
         like_filters = []
         #返回key-value不为空的值
         like_key = None
         for i in item:
-            print(i)
-            print(self.data.get(i))
+            # print(i)
+            # print(self.data.get(i))
             if (self.data.get(i)):
                 # 仅能有一个模糊查询
-                print(str(i))
+                # print(str(i))
                 if "ID" not in str(i):
                     like_key = 1
                 filters[i] = self.data.get(i)
@@ -51,6 +53,7 @@ class QueryConductor(object):
         #联合多表查询:多个对应一个表很难，建议这部分数据库重复，建议先把创建的内容弄起来
         # a = Task.query.join(User,  Task.taskExecutorID == User.userID).filter(User.username=="user1").first()
         # print(66,a.taskID)
+        print(like_filters)
         q = None
         all_model = [Project, User, File, Task, Template]
         for i in all_model:

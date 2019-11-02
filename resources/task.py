@@ -64,17 +64,17 @@ class TaskResource(Resource):
             taskName = json_data['taskName'],
             taskBelongedToProjectID = json_data['taskBelongedToProjectID'],
             #belongedToTrialName = json_data['belongedToTrialName'],
-            # taskCreatorID = json_data['taskCreatorID'],
+            taskCreatorID = headers['userID'],
             #taskCreatorName = json_data['taskCreatorName'],
             taskCreatedTime = time.strftime("%Y-%m-%d", time.localtime()),
             taskExecutorID = json_data['taskExecutorID'],
             #taskExecutorName = json_data['taskExecutorName'],
-            taskReceivedStatus = json_data['taskReceivedStatus'],
+            taskReceivedStatus = None,
             taskDueTime = json_data['taskDueTime'],
             taskProgress = json_data['taskProgress'],
-            taskCompletedStatus = json_data['taskCompletedStatus'],
+            taskCompletedStatus = None,
             taskDescription = json_data['taskDescription'],
-            taskActualCompletedTime = json_data['taskActualCompletedTime']
+            taskActualCompletedTime = None
         )
         session.add(task)
         session.commit()

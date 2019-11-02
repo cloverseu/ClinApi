@@ -33,28 +33,54 @@ class ProjectResource(Resource):
     #查询
     @auth_token
     def get(self, headers):
-
+        print(headers)
         data = self.parser.parse_args()
+        print(data)
         studyInfo = QueryConductor(data).queryProcess()
         if not studyInfo:
             studyInfo = Project.query.all()
-        results = ProjectSchema().dump(studyInfo, many=True).data
+        results = ProjectSchema().dump(studyInfo, many=True)
+
+
+
+
 
         # projectID = None
         # for i, k in enumerate(result):
         #     projectID = k["projectID"]
-        for result in results:
-            result["projectInvolvedUsersID"] = []
-            result["projectInvolvedUsersName"] = []
-            user_projectInfo = userProject.query.filter_by(projectID=result["projectID"]).all()
+
+        #传入的peojectID或者isAdmin
+        if (headers["isAdmin"] or data.get("projectID")):
+            for result in results:
+                result["projectInvolvedUsersID"] = []
+                result["projectInvolvedUsersName"] = []
+                user_projectInfo = userProject.query.filter_by(projectID=result["projectID"]).all()
+                result_user_project = userProjectSchema().dump(user_projectInfo, many=True)
+                print("eee")
+                print(result_user_project)
+                if len(results)==1:
+                    like_filters = {}
+                    like_filters["projectID"] = result["projectID"]
+                    like_filters["userType"] = 1
+                    manager = userProject.query.filter_by(**like_filters)
+                    print(manager.first())
+                    if manager.first():
+                        result["projectManagerName"] = session.query(User).filter_by(userID=manager.first().userID).first().username
+                    for r in result_user_project:
+                        r["username"] =  session.query(User).filter_by(userID=r["userID"]).first().username
+                        if (r["userType"] == 2):
+                            result["projectInvolvedUsersID"].append(r["userID"])
+                            result["projectInvolvedUsersName"].append(r["username"])
+
+        #传入userID
+        else:
+            results = []
+            user_projectInfo = userProject.query.filter_by(userID=headers["userID"]).all()
             result_user_project = userProjectSchema().dump(user_projectInfo, many=True).data
-            print(result_user_project)
-            result["projectManagerName"] = session.query(User).filter_by(userID=result['projectCreatorID']).first().username
-            for r in result_user_project:
-                r["username"] =  session.query(User).filter_by(userID=r["userID"]).first().username
-                if (r["userType"] == 2):
-                    result["projectInvolvedUsersID"].append(r["userID"])
-                    result["projectInvolvedUsersName"].append(r["username"])
+            for i in result_user_project:
+                studyInfo = Project.query.filter_by(projectID = i["projectID"])
+                results.append(ProjectSchema().dump(studyInfo, many=True))
+
 
         # return { "statusCode": "1", 'project':results}
         if (data.get("projectID")):
@@ -110,7 +136,7 @@ class ProjectResource(Resource):
 #
 #         )
 #         db.session.commit()
-        return {'message': 'success','projectID': project.projectID}
+        return {'statusCode': '1','projectID': project.projectID}
 
     #更新，如果要修改则需要删掉原先的userproject中的关联重新添加
     @auth_token
@@ -130,9 +156,14 @@ class ProjectResource(Resource):
     def delete(self, headers):
         data = self.parser.parse_args()
         data_user_id = data.get('projectID')
-        del_by_projectID = session.query(Project).filter_by(projectID=data_user_id).first()
-        session.delete(del_by_projectID)
-        session.commit()
+
+        session.query(userProject).filter(userProject.projectID==data_user_id).delete()
+
+        session.query(Project).filter(Project.projectID==data_user_id).delete()
+        #del_by_projectID = Project.query.filter(Project.projectID==data_user_id).first()
+        #db.session.delete(del_by_projectID)
+        #session.delete(del_by_projectID)
+        db.session.commit()
 
         return {"statusCode": "1"}
 

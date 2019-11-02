@@ -21,24 +21,24 @@ class LoginResource(Resource):
 
     def post(self):
         # 看传递过来的是formdata数据还是json数据
-        try:
-            headers = jwt.decode(self.header["Authorization"], 'secret', algorithms=['HS256'])
-            return {"statusCode": "0",
-                    "error": {
-                        "message": "当前用户已经登录",
-                        "errorCode": "400"
-                        }
-                    }
-        except:
-            json_data = self.parser.parse_args()
-
-            if not json_data:
+            try:
+                headers = jwt.decode(self.header["Authorization"], 'secret', algorithms=['HS256'])
                 return {"statusCode": "0",
                         "error": {
-                                "message": "内容为空",
-                                "errorCode": "403"
+                            "message": "当前用户已经登录",
+                            "errorCode": "400"
                             }
                         }
+            except:
+                json_data = self.parser.parse_args()
+
+                if not json_data:
+                    return {"statusCode": "0",
+                            "error": {
+                                    "message": "内容为空",
+                                    "errorCode": "403"
+                                }
+                            }
             # data, errors = UserSchema().load(json_data, session=session)
             # if errors:
             #     return errors, 422
@@ -65,10 +65,10 @@ class LoginResource(Resource):
             session.commit()
             #添加token(密码加密后返回?)
             #secret可以写入配置文件中, 'exp':int(time.time())+8000
-            token = jwt.encode({'userID': user.userID}, 'secret', algorithm='HS256')
+            token = jwt.encode({'userID': user.userID, 'isAdmin':user.isAdmin}, 'secret', algorithm='HS256')
             return {
                  "statusCode": "1",
-                 "userInfo": {'username':user.username, 'userRealName':user.userRealName},
+                 "userInfo": {'username':user.username, 'userRealName':user.userRealName, 'isAdmin':user.isAdmin, 'userID': user.userID},
                  "token": token.decode('utf-8')
             }
 
