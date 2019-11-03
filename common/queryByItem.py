@@ -36,15 +36,15 @@ class QueryConductor(object):
         #模糊查询
         like_filters = []
         #返回key-value不为空的值
-        like_key = None
+        like_key = 1
         for i in item:
             # print(i)
             # print(self.data.get(i))
             if (self.data.get(i)):
                 # 仅能有一个模糊查询
                 # print(str(i))
-                if "ID" not in str(i):
-                    like_key = 1
+                if "ID" in str(i):
+                    like_key = None
                 filters[i] = self.data.get(i)
         # tasksInfo = Tasks.query.filter_by(**filters)
         # itemkey = list(self.data.keys())[0]
@@ -54,6 +54,7 @@ class QueryConductor(object):
         # a = Task.query.join(User,  Task.taskExecutorID == User.userID).filter(User.username=="user1").first()
         # print(66,a.taskID)
         print(like_filters)
+        print(like_key)
         q = None
         all_model = [Project, User, File, Task, Template]
         for i in all_model:

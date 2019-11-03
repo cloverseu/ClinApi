@@ -85,7 +85,7 @@ class UserResource(Resource):
             userRealName = json_data['userRealName'],
             password = json_data['password'],
             userEmail = json_data['userEmail'],
-            isAdmin = json_data['isAdmin'],
+            isAdmin = False,
             userAccountStatus = json_data['userAccountStatus'],
             userLastLoginTime = None
         )

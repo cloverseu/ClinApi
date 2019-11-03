@@ -31,10 +31,15 @@ class TaskResource(Resource):
     def get(self, headers):
         # print(dir(Tasks))
         data = self.parser.parse_args()
+        if headers["isAdmin"] == False:
+            data.update({"taskExecutorID" : headers["userID"]})
+        print(data)
         tasksInfo = QueryConductor(data).queryProcess()
         if not tasksInfo:
             tasksInfo = Task.query.all()
         result = TaskSchema().dump(tasksInfo, many=True).data
+
+
         for r in result:
             r["taskBelongedToProjectName"] = session.query(Project).filter_by(projectID=r['taskBelongedToProjectID']).first().projectName
             r["taskCreatorName"] = session.query(User).filter_by(userID=r['taskCreatorID']).first().username

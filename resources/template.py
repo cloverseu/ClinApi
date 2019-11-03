@@ -121,9 +121,12 @@ class TemplateResource(Resource):
         data = self.parser.parse_args()
         data_template_id = data.get('templateID')
         update_template = session.query(Template).filter_by(templateID=data_template_id).first()
-        update_template.templateName = data.get('templateName')
-        update_template.templateDescription = data.get('templateDescription')
-        update_template.templateStatus = data.get('templateStatus')
+        if data.get('templateName'):
+            update_template.templateName = data.get('templateName')
+        if data.get('templateDescription'):
+            update_template.templateDescription = data.get('templateDescription')
+        if data.get('templateStatus'):
+            update_template.templateStatus = data.get('templateStatus')
         if data.get('templateStatus') == "2":
             update_template.templateRemoveExecutorID = headers["userID"]
             update_template.templateRemoveDate = time.ctime(time.time())

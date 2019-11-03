@@ -56,7 +56,6 @@ class ProjectResource(Resource):
                 result["projectInvolvedUsersName"] = []
                 user_projectInfo = userProject.query.filter_by(projectID=result["projectID"]).all()
                 result_user_project = userProjectSchema().dump(user_projectInfo, many=True)
-                print("eee")
                 print(result_user_project)
                 if len(results)==1:
                     like_filters = {}
@@ -65,6 +64,7 @@ class ProjectResource(Resource):
                     manager = userProject.query.filter_by(**like_filters)
                     print(manager.first())
                     if manager.first():
+                        result["projectManagerID"] = manager.first().userID
                         result["projectManagerName"] = session.query(User).filter_by(userID=manager.first().userID).first().username
                     for r in result_user_project:
                         r["username"] =  session.query(User).filter_by(userID=r["userID"]).first().username
@@ -75,11 +75,11 @@ class ProjectResource(Resource):
         #传入userID
         else:
             results = []
-            user_projectInfo = userProject.query.filter_by(userID=headers["userID"]).all()
+            user_projectInfo = userProject.query.filter_by(userID=headers["userID"], userType=2).all()
             result_user_project = userProjectSchema().dump(user_projectInfo, many=True).data
             for i in result_user_project:
                 studyInfo = Project.query.filter_by(projectID = i["projectID"])
-                results.append(ProjectSchema().dump(studyInfo, many=True))
+                results.append(ProjectSchema().dump(studyInfo, many=True).data[0])
 
 
         # return { "statusCode": "1", 'project':results}
