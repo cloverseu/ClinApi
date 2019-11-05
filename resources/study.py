@@ -21,7 +21,7 @@ class StudyResource(Resource):
     @auth_token
     def get(self, headers):
         studyInfo = Study.query.all()
-        result = StudySchema().dump(studyInfo, many=True).data
+        result = StudySchema().dump(studyInfo, many=True)
         return {'message':'success', 'data':result}
 
     #增加

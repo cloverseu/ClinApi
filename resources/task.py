@@ -8,7 +8,7 @@ from  common.queryByItem import QueryConductor
 from common.util import auth_token
 import time
 from common.util import sendMail
-
+from sqlalchemy import or_
 
 class TaskResource(Resource):
 
@@ -22,6 +22,7 @@ class TaskResource(Resource):
         self.parser.add_argument('taskReceivedStatus', type=str)
         self.parser.add_argument('taskCompletedStatus', type=str)
         self.parser.add_argument('taskDescription', type=str)
+        self.parser.add_argument('isAdminMode', type=str)
         # parser.add_argument('file', type=FileStorage, location="files")
         # parser.add_argument('sop_name', type=str)
         # parser.add_argument('sop_description', type=str)
@@ -31,19 +32,27 @@ class TaskResource(Resource):
     def get(self, headers):
         # print(dir(Tasks))
         data = self.parser.parse_args()
-        if headers["isAdmin"] == False:
-            data.update({"taskExecutorID" : headers["userID"]})
-        print(data)
-        tasksInfo = QueryConductor(data).queryProcess()
-        if not tasksInfo:
-            tasksInfo = Task.query.all()
+        # data.update({"taskExecutorID" : headers["userID"]})
+        isAdminMode = data.get("isAdminMode")
+        data.pop("isAdminMode")
+        if isAdminMode:
+            if (isAdminMode == "false"):
+                cdt = {or_(Task.taskExecutorID ==  headers["userID"],Task.taskCreatorID ==  headers["userID"])}
+            else:
+                #isadmin做筛选时候是有问题的？？
+                cdt = {Task.taskExecutorID > 0}
+        else:
+            cdt = {Task.taskExecutorID ==  headers["userID"]}
+        tasksInfo = QueryConductor(data, cdt).queryProcess()
+        # print(cdt)
+        # tasksInfo = QueryConductor(data, cdt).queryProcess()
+        # if not tasksInfo:
+            # tasksInfo = Task.query.all()
         result = TaskSchema().dump(tasksInfo, many=True).data
-
-
         for r in result:
-            r["taskBelongedToProjectName"] = session.query(Project).filter_by(projectID=r['taskBelongedToProjectID']).first().projectName
+            #r["taskBelongedToProjectName"] = session.query(Project).filter_by(projectID=r['taskBelongedToProjectID']).first().projectName
             r["taskCreatorName"] = session.query(User).filter_by(userID=r['taskCreatorID']).first().username
-            r["taskExecutorName"] = session.query(User).filter_by(userID=r['taskExecutorID']).first().username
+            #r["taskExecutorName"] = session.query(User).filter_by(userID=r['taskExecutorID']).first().username
         if (data.get("taskID")):
             return {"statusCode": "1", "task":result}
         else:
@@ -64,7 +73,8 @@ class TaskResource(Resource):
             return {'message': 'name already exists'}, 400
 
         #变量如果没有会怎样,需要指定阶段文件？
-
+        taskBelongedToProjectName = session.query(Project).filter_by(projectID=json_data['taskBelongedToProjectID']).first().projectName
+        taskExecutorName = session.query(User).filter_by(userID=headers['userID']).first().username
         task = Task(
             taskName = json_data['taskName'],
             taskBelongedToProjectID = json_data['taskBelongedToProjectID'],
@@ -74,12 +84,14 @@ class TaskResource(Resource):
             taskCreatedTime = time.strftime("%Y-%m-%d", time.localtime()),
             taskExecutorID = json_data['taskExecutorID'],
             #taskExecutorName = json_data['taskExecutorName'],
-            taskReceivedStatus = None,
+            taskReceivedStatus = json_data['taskReceivedStatus'],
             taskDueTime = json_data['taskDueTime'],
             taskProgress = json_data['taskProgress'],
             taskCompletedStatus = None,
             taskDescription = json_data['taskDescription'],
-            taskActualCompletedTime = None
+            taskActualCompletedTime = None,
+            taskBelongedToProjectName = taskBelongedToProjectName,
+            taskExecutorName = taskExecutorName
         )
         session.add(task)
         session.commit()

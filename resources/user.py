@@ -20,7 +20,7 @@ class UserResource(Resource):
         self.parser.add_argument('userID', type=int)
         self.parser.add_argument('username', type=str)
         self.parser.add_argument('userEmail', type=str)
-
+        self.parser.add_argument('userRealName', type=str)
 
     #查询
     @auth_token
@@ -35,7 +35,7 @@ class UserResource(Resource):
         userInfo = QueryConductor(data).queryProcess()
         if not userInfo:
             userInfo = User.query.all()
-        results = UserSchema().dump(userInfo, many=True).data
+        results = UserSchema().dump(userInfo, many=True)
         for result in results:
             # list->dict
             # for i, k in enumerate(result):
@@ -47,7 +47,7 @@ class UserResource(Resource):
             result["userCanManageProjectsID"] = []
             result["userCanManageProjectsName"] = []
             user_projectInfo = userProject.query.filter_by(userID=result["userID"]).all()
-            result_user_project = userProjectSchema().dump(user_projectInfo, many=True).data
+            result_user_project = userProjectSchema().dump(user_projectInfo, many=True)
             print(result_user_project)
             for r in result_user_project:
                 r["projectName"] = session.query(Project).filter_by(projectID=r['projectID']).first().projectName
@@ -116,6 +116,8 @@ class UserResource(Resource):
     def put(self, headers):
         json_data = request.get_json(force=True)
         data_user_id = json_data['userID']
+        session.query(userProject).filter(userProject.userID == data_user_id).delete()
+        session.commit()
         update_user = session.query(User).filter_by(userID=data_user_id)
         update_json = json_data.copy()
         update_json.pop("userInvolvedProjectsID")
@@ -123,28 +125,28 @@ class UserResource(Resource):
 
         print(update_json)
         update_user.update(update_json)
-        session.query(userProject).filter(userProject.userID==data_user_id).delete()
         # session.delete(del_by_id)
         #更新方法，变量json_data中的所有数据
         # for k in json_data:
         #     update_user.update({k:json_data[k]})
 
         session.commit()
+        if json_data["userInvolvedProjectsID"]:
+            db.session.execute(
+                userProject.__table__.insert(),
+                [{"userID": data_user_id, "projectID": json_data["userInvolvedProjectsID"][i], "userType": "2"} for i
+                 in range(len(json_data["userInvolvedProjectsID"]))]
 
-        db.session.execute(
-            userProject.__table__.insert(),
-            [{"userID": data_user_id, "projectID": json_data["userInvolvedProjectsID"][i], "userType": "2"} for i
-             in range(len(json_data["userInvolvedProjectsID"]))]
+            )
+            db.session.commit()
+        if json_data["userCanManageProjectsID"]:
+            db.session.execute(
+                userProject.__table__.insert(),
+                [{"userID": data_user_id, "projectID": json_data['userCanManageProjectsID'][i], "userType": "1"} for i
+                 in range(len(json_data["userCanManageProjectsID"]))]
 
-        )
-        db.session.commit()
-        db.session.execute(
-            userProject.__table__.insert(),
-            [{"userID": data_user_id, "projectID": json_data['userCanManageProjectsID'][i], "userType": "1"} for i
-             in range(len(json_data["userCanManageProjectsID"]))]
-
-        )
-        db.session.commit()
+            )
+            db.session.commit()
 
         return {"statusCode": "1"}
 

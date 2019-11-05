@@ -17,13 +17,14 @@ class Template(db.Model):
     templateDeleteDate = db.Column(db.DateTime)
     templateDeleteExecutorID = db.Column(db.Integer)
     templateDownloadURL = db.Column(db.String(255))
+    templateCreatorName = db.Column(db.String(255))
 
 
 
 
     def __init__(self,templateName , templateDescription ,templateCreateDate ,
                     templateCreatorID ,templateStatus , templateRemoveDate , templateRemoveExecutorID ,templateDeleteDate , templateDeleteExecutorID ,
-                    templateDownloadURL):
+                    templateDownloadURL, templateCreatorName):
         self.templateName = templateName
         self.templateDescription = templateDescription
         self.templateCreateDate = templateCreateDate
@@ -34,6 +35,7 @@ class Template(db.Model):
         self.templateDeleteDate = templateDeleteDate
         self.templateDeleteExecutorID = templateDeleteExecutorID
         self.templateDownloadURL = templateDownloadURL
+        self.templateCreatorName = templateCreatorName
 
 
 def __repr__(self):

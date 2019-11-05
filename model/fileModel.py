@@ -10,9 +10,12 @@ class File(db.Model):
     fileName = db.Column(db.String(255))
     fileDescription = db.Column(db.String)
     fileBelongedToTaskID = db.Column(db.Integer)
+    fileBelongedToTaskName = db.Column(db.String)
     fileBelongedToProjectID = db.Column(db.Integer)
+    fileBelongedToProjectName:db.Column(db.String)
     fileCreateDate = db.Column(db.DateTime)
     fileCreatorID = db.Column(db.Integer)
+    fileCreatorName = db.Column(db.String)
     fileStatus = db.Column(db.String(255))
     fileRemoveDate = db.Column(db.DateTime)
     fileRemoveExecutorID = db.Column(db.Integer)
@@ -25,7 +28,7 @@ class File(db.Model):
 
     def __init__(self,fileName , fileDescription , fileBelongedToTaskID ,fileBelongedToProjectID ,fileCreateDate ,
                     fileCreatorID ,fileStatus , fileRemoveDate , fileRemoveExecutorID ,fileDeleteDate , fileDeleteExecutorID ,
-                    fileDownloadURL):
+                    fileDownloadURL, fileBelongedToTaskName, fileBelongedToProjectName, fileCreatorName):
         self.fileName = fileName
         self.fileDescription = fileDescription
         self.fileBelongedToTaskID = fileBelongedToTaskID
@@ -38,6 +41,9 @@ class File(db.Model):
         self.fileDeleteDate = fileDeleteDate
         self.fileDeleteExecutorID = fileDeleteExecutorID
         self.fileDownloadURL = fileDownloadURL
+        self.fileBelongedToTaskName = fileBelongedToTaskName
+        self.fileBelongedToProjectName = fileBelongedToProjectName
+        self.fileCreatorName = fileCreatorName
 
 
 def __repr__(self):

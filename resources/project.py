@@ -76,10 +76,10 @@ class ProjectResource(Resource):
         else:
             results = []
             user_projectInfo = userProject.query.filter_by(userID=headers["userID"], userType=2).all()
-            result_user_project = userProjectSchema().dump(user_projectInfo, many=True).data
+            result_user_project = userProjectSchema().dump(user_projectInfo, many=True)
             for i in result_user_project:
                 studyInfo = Project.query.filter_by(projectID = i["projectID"])
-                results.append(ProjectSchema().dump(studyInfo, many=True).data[0])
+                results.append(ProjectSchema().dump(studyInfo, many=True)[0])
 
 
         # return { "statusCode": "1", 'project':results}

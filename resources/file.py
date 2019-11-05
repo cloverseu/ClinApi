@@ -12,6 +12,7 @@ from common.util import auth_token
 import time
 import os
 import re
+from sqlalchemy import or_
 
 
 class FileResource(Resource):
@@ -24,7 +25,7 @@ class FileResource(Resource):
         self.parser.add_argument('fileBelongedToProjectID', type=str)
         self.parser.add_argument('fileStatus', type=str)
         self.parser.add_argument('file', type=FileStorage, location="files")
-        # self.parser.add_argument('fileDescription', type=str)
+        self.parser.add_argument('fileDescription', type=str)
         # self.parser.add_argument('fileBelongedToTaskID' , type=str)
         # self.parser.add_argument('fileBelongedToProjectID', type=str)
         # self.parser.add_argument('fileCreateDate', type=str)
@@ -39,16 +40,21 @@ class FileResource(Resource):
     @auth_token
     def get(self, headers):
         data = self.parser.parse_args()
-        taskFilesInfo = QueryConductor(data).queryProcess()
-        if not taskFilesInfo:
-            taskFilesInfo = File.query.all()
-        results = FileSchema().dump(taskFilesInfo , many=True).data
+        if headers["isAdmin"]:
+            cdt = {File.fileBelongedToTaskID > 0}
+        else:
+            taskExeCreateID =  Task.query.filter(*{or_(Task.taskCreatorID == headers["userID"], Task.taskExecutorID == headers["userID"])}).with_entities(Task.taskID).all()
+            cdt = {File.fileBelongedToTaskID in taskExeCreateID}
+        taskFilesInfo = QueryConductor(data, cdt).queryProcess()
+        results = FileSchema().dump(taskFilesInfo, many=True).data
+
         for result in results:
             result["fileDownloadURL"] = "/download/"+result["fileDownloadURL"]
-            result["fileCreatorName"] = session.query(User).filter_by(userID=result['fileCreatorID']).first().username
-            result["fileBelongedToTaskName"] = session.query(Task).filter_by(taskID=result['fileBelongedToTaskID']).first().taskName
-            if result['fileBelongedToProjectID']:
-                result["fileBelongedToProjectName"] = session.query(Project).filter_by(projectID=result['fileBelongedToProjectID']).first().projectName
+            #result["fileCreatorName"] = session.query(User).filter_by(userID=result['fileCreatorID']).first().username
+            #result["fileBelongedToTaskName"] = session.query(Task).filter_by(taskID=result['fileBelongedToTaskID']).first().taskName
+            # result['fileBelongedToProjectID'] = session.query(Task).filter_by(taskID=result['fileBelongedToTaskID']).first().taskBelongedToProjectID
+            # if result['fileBelongedToProjectID']:
+            #     result["fileBelongedToProjectName"] = session.query(Project).filter_by(projectID=result['fileBelongedToProjectID']).first().projectName
             if result['fileRemoveExecutorID']:
                 result["fileRemoveExecutorName"] = session.query(User).filter_by(userID=result['fileRemoveExecutorID']).first().username
             if result['fileDeleteExecutorID']:
@@ -85,7 +91,9 @@ class FileResource(Resource):
                 return {'message': 'No input  file provided'}, 400
             file_name = File.query.filter_by(fileName=data.get('fileName')).first()
             file_URL = File.query.filter_by(fileDownloadURL = file.filename).first()
-
+            fileBelongedToTaskName = session.query(Task).filter_by(taskID=data.get('fileBelongedToTaskID')).first().taskName
+            fileBelongedToProjectName = session.query(Project).filter_by(projectID=data.get('fileBelongedToProjectID')).first().projectName
+            fileCreatorName = session.query(User).filter_by(userID=headers["userID"]).first().username
 
             taskFile = File(
                 fileName = data.get('fileName'),
@@ -99,8 +107,11 @@ class FileResource(Resource):
                 fileRemoveExecutorID =  None,
                 fileDeleteDate =  None,
                 fileDeleteExecutorID =  None,
-                fileDownloadURL = file.filename
-                # fileName = data.get('fileName'),
+                fileDownloadURL = file.filename,
+                fileBelongedToTaskName = fileBelongedToTaskName,
+                fileBelongedToProjectName = fileBelongedToProjectName,
+                fileCreatorName = fileCreatorName
+            # fileName = data.get('fileName'),
                 # createDate = data.get('createDate'),
                 # creatorID = data.get('creatorID'),
                 # # self.creatorName = creatorName
@@ -169,9 +180,12 @@ class FileResource(Resource):
         data_file_id = data.get("fileID")
         # data_file_id = json_data['fileID']
         update_file = session.query(File).filter_by(fileID=data_file_id).first()
-        update_file.fileName = data.get('fileName')
-        update_file.fileDescription = data.get('fileDescription')
-        update_file.fileStatus = data.get('fileStatus')
+        if data.get('fileName'):
+            update_file.fileName = data.get('fileName')
+        if data.get('fileDescription'):
+            update_file.fileDescription = data.get('fileDescription')
+        if  data.get('fileStatus'):
+            update_file.fileStatus = data.get('fileStatus')
 
         if data.get('fileStatus') == "2":
             update_file.fileRemoveID  = headers["userID"]
