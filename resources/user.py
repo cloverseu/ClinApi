@@ -32,7 +32,8 @@ class UserResource(Resource):
         data = self.parser.parse_args()
 
         #获得用户信息
-        userInfo = QueryConductor(data).queryProcess()
+        cdt = {User.userID > 0}
+        userInfo = QueryConductor(data, cdt).queryProcess()
         if not userInfo:
             userInfo = User.query.all()
         results = UserSchema().dump(userInfo, many=True)

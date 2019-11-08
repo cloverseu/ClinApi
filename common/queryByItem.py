@@ -76,7 +76,7 @@ class QueryConductor(object):
                     else:
                         return l
                 else:
-                    return i.query.filter(self.condition).filter_by(**filters)
+                    return i.query.filter_by(**filters)
         # try:
         #
         # #构造查询项

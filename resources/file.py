@@ -44,9 +44,9 @@ class FileResource(Resource):
             cdt = {File.fileBelongedToTaskID > 0}
         else:
             taskExeCreateID =  Task.query.filter(*{or_(Task.taskCreatorID == headers["userID"], Task.taskExecutorID == headers["userID"])}).with_entities(Task.taskID).all()
-            cdt = {File.fileBelongedToTaskID in taskExeCreateID}
+            cdt = {File.fileBelongedToTaskID.in_(taskExeCreateID)}
         taskFilesInfo = QueryConductor(data, cdt).queryProcess()
-        results = FileSchema().dump(taskFilesInfo, many=True).data
+        results = FileSchema().dump(taskFilesInfo, many=True)
 
         for result in results:
             result["fileDownloadURL"] = "/download/"+result["fileDownloadURL"]

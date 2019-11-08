@@ -26,7 +26,7 @@ class TemplateResource(Resource):
         self.parser.add_argument('templateStatus', type=str)
         self.parser.add_argument('template', type=FileStorage, location="templates")
         self.parser.add_argument('templateDescription', type=str)
-        self.parser.add_argument('templateCreatorName', type=str)
+        self.parser.add_argument('templateCreatorRealName', type=str)
         # self.parser.add_argument('templateBelongedToTaskID' , type=str)
         # self.parser.add_argument('templateBelongedToProjectID', type=str)
         # self.parser.add_argument('templateCreateDate', type=str)
@@ -41,13 +41,14 @@ class TemplateResource(Resource):
     @auth_token
     def get(self, headers):
         data = self.parser.parse_args()
-        taskTemplatesInfo = QueryConductor(data).queryProcess()
+        cdt = {Template.templateCreatorID > 0}
+        taskTemplatesInfo = QueryConductor(data, cdt).queryProcess()
         if not taskTemplatesInfo:
             taskTemplatesInfo = Template.query.all()
         results = TemplateSchema().dump(taskTemplatesInfo , many=True)
         for result in results:
             result["templateDownloadURL"] = "/download/"+result["templateDownloadURL"]
-            #result["templateCreatorName"] = session.query(User).filter_by(userID=result['templateCreatorID']).first().username
+            result["templateCreatorName"] = session.query(User).filter_by(userID=result['templateCreatorID']).first().username
             if result['templateRemoveExecutorID']:
                 result["templateRemoveExecutorName"] = session.query(User).filter_by(userID=result['templateRemoveExecutorID']).first().username
             else:
@@ -85,7 +86,7 @@ class TemplateResource(Resource):
                 return {'message': 'No input  template provided'}, 400
             template_name = Template.query.filter_by(templateName=data.get('templateName')).first()
             template_URL = Template.query.filter_by(templateDownloadURL=template.filename).first()
-            templateCreatorName = session.query(User).filter_by(userID=headers["userID"]).first().username
+            templateCreatorRealName = session.query(User).filter_by(userID=headers["userID"]).first().userRealName
 
             taskTemplate = Template(
                 templateName=data.get('templateName'),
@@ -98,7 +99,7 @@ class TemplateResource(Resource):
                 templateDeleteDate = None,
                 templateDeleteExecutorID = None,
                 templateDownloadURL =  template.filename,
-                templateCreatorName =  templateCreatorName
+                templateCreatorRealName =  templateCreatorRealName
             )
 
             if template_name:

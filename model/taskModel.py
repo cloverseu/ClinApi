@@ -24,12 +24,12 @@ class Task(db.Model):
     taskDescription = db.Column(db.String)
     taskActualCompletedTime = db.Column(db.DateTime)
     taskBelongedToProjectName = db.Column(db.String)
-    taskExecutorName = db.Column(db.String)
+    taskExecutorRealName = db.Column(db.String)
 
 
     def __init__(self, taskName ,taskBelongedToProjectID,
                  taskCreatedTime, taskCreatorID, taskExecutorID,  taskReceivedStatus, taskDueTime,
-                 taskProgress, taskCompletedStatus, taskDescription ,taskActualCompletedTime, taskBelongedToProjectName, taskExecutorName):
+                 taskProgress, taskCompletedStatus, taskDescription ,taskActualCompletedTime, taskBelongedToProjectName, taskExecutorRealName):
         self.taskName = taskName
         self.taskBelongedToProjectID = taskBelongedToProjectID
         #self.belongedToTrialName = belongedToTrialName
@@ -45,7 +45,7 @@ class Task(db.Model):
         self.taskDescription = taskDescription
         self.taskActualCompletedTime = taskActualCompletedTime
         self.taskBelongedToProjectName = taskBelongedToProjectName
-        self.taskExecutorName = taskExecutorName
+        self.taskExecutorRealName = taskExecutorRealName
 
     def __repr__(self):
         return '<Task %r>' % self. taskID

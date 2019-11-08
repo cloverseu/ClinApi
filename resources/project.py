@@ -35,14 +35,19 @@ class ProjectResource(Resource):
     def get(self, headers):
         print(headers)
         data = self.parser.parse_args()
-        print(data)
-        studyInfo = QueryConductor(data).queryProcess()
-        if not studyInfo:
-            studyInfo = Project.query.all()
-        results = ProjectSchema().dump(studyInfo, many=True)
+        # cdt = {Project.projectID > 0}
+        # studyInfo = QueryConductor(data, cdt).queryProcess()
+        # if not studyInfo:
+        #     studyInfo = Project.query.all()
+        # results = ProjectSchema().dump(studyInfo, many=True)
 
-
-
+        if headers["isAdmin"]:
+            cdt = {Project.projectID > 0}
+        else:
+            userProjectID = userProject.query.filter(*{userProject.userID == headers["userID"]}).with_entities(userProject.projectID).distinct().all()
+            cdt = {Project.projectID.in_(userProjectID)}
+        studyInfo = QueryConductor(data, cdt).queryProcess()
+        results = ProjectSchema().dump(studyInfo, many=True).data
 
 
         # projectID = None
@@ -50,12 +55,12 @@ class ProjectResource(Resource):
         #     projectID = k["projectID"]
 
         #传入的peojectID或者isAdmin
-        if (headers["isAdmin"] or data.get("projectID")):
-            for result in results:
+        # if (headers["isAdmin"] or data.get("projectID")):
+        for result in results:
                 result["projectInvolvedUsersID"] = []
                 result["projectInvolvedUsersName"] = []
                 user_projectInfo = userProject.query.filter_by(projectID=result["projectID"]).all()
-                result_user_project = userProjectSchema().dump(user_projectInfo, many=True)
+                result_user_project = userProjectSchema().dump(user_projectInfo, many=True).data
                 print(result_user_project)
                 if len(results)==1:
                     like_filters = {}
@@ -73,13 +78,13 @@ class ProjectResource(Resource):
                             result["projectInvolvedUsersName"].append(r["username"])
 
         #传入userID
-        else:
-            results = []
-            user_projectInfo = userProject.query.filter_by(userID=headers["userID"], userType=2).all()
-            result_user_project = userProjectSchema().dump(user_projectInfo, many=True)
-            for i in result_user_project:
-                studyInfo = Project.query.filter_by(projectID = i["projectID"])
-                results.append(ProjectSchema().dump(studyInfo, many=True)[0])
+        # else:
+        #     results = []
+        #     user_projectInfo = userProject.query.filter_by(userID=headers["userID"], userType=2).all()
+        #     result_user_project = userProjectSchema().dump(user_projectInfo, many=True)
+        #     for i in result_user_project:
+        #         studyInfo = Project.query.filter_by(projectID = i["projectID"])
+        #         results.append(ProjectSchema().dump(studyInfo, many=True)[0])
 
 
         # return { "statusCode": "1", 'project':results}
@@ -117,7 +122,11 @@ class ProjectResource(Resource):
             projectSponsor = json_data['projectSponsor'],
             projectInvestigator = json_data['projectInvestigator'],
             projectMonitor = json_data['projectMonitor'],
-            projectStatistician = json_data['projectStatistician']
+            projectStatistician = json_data['projectStatistician'],
+            projectComment1 = json_data['projectComment1'],
+            projectComment2 = json_data['projectComment2'],
+            projectComment3 = json_data['projectComment3'],
+            projectComment4 = json_data['projectComment4'],
         )
         print(json_data)
 

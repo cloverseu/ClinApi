@@ -20,6 +20,10 @@ class Project(db.Model):
     projectInvestigator = db.Column(db.String(255))
     projectMonitor = db.Column(db.String(255))
     projectStatistician = db.Column(db.String(255))
+    projectComment1 = db.Column(db.String)
+    projectComment2 = db.Column(db.String)
+    projectComment3 = db.Column(db.String)
+    projectComment4 = db.Column(db.String)
 
     #u_account = db.relationship('user_project', backref='project_info', lazy='dynamic')
 
@@ -27,7 +31,7 @@ class Project(db.Model):
 
     def __init__(self, projectName ,projectStage, projectBriefIntroduction, projectCreatedTime, projectExpectedStartTime,
                  projectActualStartTime, projectExpectedEndTime, projectActualEndTime, projectSponsor, projectInvestigator,
-                 projectMonitor, projectStatistician):
+                 projectMonitor, projectStatistician,  projectComment1, projectComment2, projectComment3, projectComment4):
         self.projectName = projectName
         self.projectStage = projectStage
         self.projectBriefIntroduction = projectBriefIntroduction
@@ -41,6 +45,10 @@ class Project(db.Model):
         self.projectInvestigator = projectInvestigator
         self.projectMonitor = projectMonitor
         self.projectStatistician = projectStatistician
+        self.projectComment1 = projectComment1
+        self.projectComment2 = projectComment2
+        self.projectComment3 = projectComment3
+        self.projectComment4 = projectComment4
 
 
     def __repr__(self):

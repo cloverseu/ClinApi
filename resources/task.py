@@ -48,11 +48,12 @@ class TaskResource(Resource):
         # tasksInfo = QueryConductor(data, cdt).queryProcess()
         # if not tasksInfo:
             # tasksInfo = Task.query.all()
-        result = TaskSchema().dump(tasksInfo, many=True).data
+        result = TaskSchema().dump(tasksInfo, many=True)
         for r in result:
             #r["taskBelongedToProjectName"] = session.query(Project).filter_by(projectID=r['taskBelongedToProjectID']).first().projectName
             r["taskCreatorName"] = session.query(User).filter_by(userID=r['taskCreatorID']).first().username
-            #r["taskExecutorName"] = session.query(User).filter_by(userID=r['taskExecutorID']).first().username
+            r["taskCreatorRealName"] = session.query(User).filter_by(userID=r['taskCreatorID']).first().userRealName
+            r["taskExecutorName"] = session.query(User).filter_by(userID=r['taskExecutorID']).first().username
         if (data.get("taskID")):
             return {"statusCode": "1", "task":result}
         else:
@@ -74,7 +75,7 @@ class TaskResource(Resource):
 
         #变量如果没有会怎样,需要指定阶段文件？
         taskBelongedToProjectName = session.query(Project).filter_by(projectID=json_data['taskBelongedToProjectID']).first().projectName
-        taskExecutorName = session.query(User).filter_by(userID=headers['userID']).first().username
+        taskExecutorRealName = session.query(User).filter_by(userID=headers['userID']).first().userRealName
         task = Task(
             taskName = json_data['taskName'],
             taskBelongedToProjectID = json_data['taskBelongedToProjectID'],
@@ -91,7 +92,7 @@ class TaskResource(Resource):
             taskDescription = json_data['taskDescription'],
             taskActualCompletedTime = None,
             taskBelongedToProjectName = taskBelongedToProjectName,
-            taskExecutorName = taskExecutorName
+            taskExecutorRealName = taskExecutorRealName
         )
         session.add(task)
         session.commit()
